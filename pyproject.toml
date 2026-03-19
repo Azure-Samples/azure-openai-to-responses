@@ -1,0 +1,26 @@
+[project]
+name = "azure-openai-to-responses"
+version = "0.1.0"
+description = "Migrate Azure OpenAI apps from Chat Completions to the Responses API"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.108.1",
+    "azure-identity",
+    "azure-mgmt-cognitiveservices",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio",
+]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+]
+
+[project.scripts]
+azure-openai-to-responses = "migrate:main"

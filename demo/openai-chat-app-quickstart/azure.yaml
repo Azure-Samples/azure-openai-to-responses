@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: azure-openai-chat-app-quickstart
+metadata:
+  template: azure-openai-chat-app-quickstart@0.4.0
+requiredVersions:
+  azd: ">= 1.17.0"
+services:
+  aca:
+    project: ./src
+    language: py
+    host: containerapp
+    docker:
+      remoteBuild: true
