@@ -2,7 +2,7 @@
 description: >-
   Migrate a Python app from Azure OpenAI Chat Completions to the Responses API.
   Point it at your app and it handles detection, planning, migration, and verification.
-tools: [read, edit, search, execute, get_errors]
+tools: [read, edit, search, execute]
 argument-hint: "Path to the Python app to migrate, e.g. /path/to/my-app"
 ---
 
