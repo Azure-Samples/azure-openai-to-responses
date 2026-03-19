@@ -49,7 +49,17 @@ The scanner finds every call site that needs to change, grouped by category: cli
 
 ### Step 2 — Let the agent migrate it
 
-Open your app in VS Code (with this repo as a workspace folder). In Copilot Chat:
+Open your app in VS Code as a **multi-root workspace** with both this repo and your app:
+
+1. Open your app folder in VS Code (`File > Open Folder`)
+2. Add this repo: `File > Add Folder to Workspace...` → select the cloned `azure-openai-to-responses` folder
+3. VS Code switches to an "Untitled (Workspace)" with both folders in the sidebar
+
+> **Why multi-root?** VS Code scopes Copilot's file access to workspace folders. Without this, the agent will prompt for permission every time it tries to read or edit files in your app. Adding both folders to the same workspace avoids those prompts.
+>
+> **Tip:** Save it for reuse with `File > Save Workspace As...` (creates a `.code-workspace` file you can double-click next time).
+
+In Copilot Chat:
 
 ```
 @azure-openai-to-responses migrate the app at /path/to/your-app
