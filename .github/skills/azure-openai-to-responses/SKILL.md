@@ -80,8 +80,13 @@ For a comprehensive list of models with Responses API support (including per-reg
 > - **Structured output via `text.format`**: Older models may not enforce `strict: true` JSON schemas reliably.
 > - **Tool orchestration**: GPT-5+ orchestrates tool calls as part of internal reasoning. Older models on Responses still work but lack this deep integration.
 > - **Temperature constraints**: When migrating to `gpt-5`, temperature must be omitted or set to `1`. Older models have no such constraint.
->
-> **Recommendation**: If staying on an older model (gpt-4o, gpt-4), the migration to Responses API still works for basic text/chat/streaming/tools — but test thoroughly. For full benefit (especially tool orchestration and reasoning), upgrade to gpt-4.1+ or gpt-5.
+
+**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model is older than `gpt-4.1`, proactively tell the user:
+- The migration will work for basic text, chat, streaming, and tools on their current model.
+- Newer models (`gpt-4.1`, `gpt-4.1-mini`, `gpt-5`) offer better tool orchestration, structured output enforcement, and reasoning.
+- They should consider upgrading their deployment when ready — it's not blocking the migration.
+
+Do not block or refuse to migrate based on model version. The advisory is informational.
 
 ---
 

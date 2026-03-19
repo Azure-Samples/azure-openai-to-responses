@@ -1,16 +1,9 @@
 ---
-mode: agent
 description: >-
   Migrate a Python app from Azure OpenAI Chat Completions to the Responses API.
   Point it at your app and it handles detection, planning, migration, and verification.
-tools:
-  - read_file
-  - replace_string_in_file
-  - create_file
-  - grep_search
-  - semantic_search
-  - run_in_terminal
-  - get_errors
+tools: [read, edit, search, execute]
+argument-hint: "Path to the Python app to migrate, e.g. /path/to/my-app"
 ---
 
 # azure-openai-to-responses
@@ -35,7 +28,9 @@ You take a Python codebase that uses `AzureOpenAI`, `chat.completions.create`, a
 1. Read the skill: `.github/skills/azure-openai-to-responses/SKILL.md`
 2. Run: `python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py <target_dir>`
 3. If zero hits → tell the user "no legacy patterns found" and stop.
-4. Present findings grouped by category. Ask to proceed.
+4. **Model advisory**: Check which model the app targets (look for deployment names/env vars like `gpt-4o`, `gpt-4o-mini`, `gpt-4` in code, `.env`, Bicep, or config files). If the model is older than `gpt-4.1`, include an advisory:
+   > **Model note:** Your app targets `<model>`. The Responses API migration will work for basic text, chat, streaming, and tools — but newer models (`gpt-4.1`, `gpt-4.1-mini`, `gpt-5`) offer better tool orchestration, structured output, and reasoning support. Consider upgrading your deployment when ready. See the [known limitations](#known-limitations-with-older-models) section for details.
+5. Present findings grouped by category. Ask to proceed.
 
 ### 2. Plan
 

@@ -49,7 +49,17 @@ The scanner finds every call site that needs to change, grouped by category: cli
 
 ### Step 2 — Let the agent migrate it
 
-Open your app in VS Code (with this repo as a workspace folder). In Copilot Chat:
+Open your app in VS Code as a **multi-root workspace** with both this repo and your app:
+
+1. Open your app folder in VS Code (`File > Open Folder`)
+2. Add this repo: `File > Add Folder to Workspace...` → select the cloned `azure-openai-to-responses` folder
+3. VS Code switches to an "Untitled (Workspace)" with both folders in the sidebar
+
+> **Why multi-root?** VS Code scopes Copilot's file access to workspace folders. Without this, the agent will prompt for permission every time it tries to read or edit files in your app. Adding both folders to the same workspace avoids those prompts.
+>
+> **Tip:** Save it for reuse with `File > Save Workspace As...` (creates a `.code-workspace` file you can double-click next time).
+
+In Copilot Chat:
 
 ```
 @azure-openai-to-responses migrate the app at /path/to/your-app
@@ -70,12 +80,11 @@ The agent will:
 # Scanner should report zero hits
 python migrate.py scan /path/to/your-app
 
-# Run your own tests
+# Run your repo's own tests
 cd /path/to/your-app && pytest
-
-# Optional: smoke-test your Azure OpenAI deployment
-python migrate.py scan /path/to/your-app --smoke-test
 ```
+
+Verification will vary by repo — run whatever unit/integration tests the project already has. If the app has a UI or API endpoint, do a quick manual test too (start the server, send a request, confirm streaming works).
 
 ### Demo: what a migrated app looks like
 
@@ -240,12 +249,6 @@ python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --all   #
 python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --json  # for scripting
 ```
 
-You can also smoke-test a specific deployment:
-
-```bash
-python migrate.py scan . --smoke-test
-```
-
 ### Known limitations with older models
 
 > **⚠️ WARNING:** Older models (e.g., `gpt-4o`, `gpt-4`) support the Responses API but **do not support all features fully**. The migration still works for basic text, chat, streaming, and tools — but test thoroughly.
@@ -290,7 +293,6 @@ python migrate.py scan . --smoke-test
 | Command | Description |
 |---|---|
 | `python migrate.py scan <dirs>` | Scan directories for legacy patterns. Exit 0 = clean, exit 1 = migration needed. |
-| `python migrate.py scan <dirs> --smoke-test` | Scan + verify your deployment supports Responses API. |
 | `python migrate.py org-scan --org <name>` | Search a GitHub org for repos using legacy patterns (via `gh` CLI). |
 | `python migrate.py org-scan --org <name> --json` | Same, but JSON output for scripting. |
 | `python migrate.py bulk prepare --org <name>` | Clone flagged repos, create branches, scan, produce report. |
@@ -341,9 +343,9 @@ azure-openai-to-responses/
 
 | Variable | Used by | Description |
 |---|---|---|
-| `AZURE_OPENAI_ENDPOINT` | scan --smoke-test, test | Azure OpenAI resource URL |
-| `AZURE_OPENAI_DEPLOYMENT` | scan --smoke-test, test | Deployment name (e.g., `gpt-4o`) |
-| `AZURE_OPENAI_API_KEY` | scan --smoke-test, test | API key (omit if using EntraID) |
+| `AZURE_OPENAI_ENDPOINT` | test | Azure OpenAI resource URL |
+| `AZURE_OPENAI_DEPLOYMENT` | test | Deployment name (e.g., `gpt-4o`) |
+| `AZURE_OPENAI_API_KEY` | test | API key (omit if using EntraID) |
 | `AZURE_TENANT_ID` | EntraID auth | Tenant ID |
 | `AZURE_CLIENT_ID` | Managed identity | User-assigned managed identity client ID |
 
