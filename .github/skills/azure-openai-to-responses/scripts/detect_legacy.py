@@ -38,8 +38,11 @@ PATTERNS: list[tuple[str, str, str]] = [
     (r"choices\[0\]", "Generic choices[0] access", "response-shape"),
     # Deprecated parameters
     (r"\bmax_tokens\b", "Deprecated max_tokens (use max_output_tokens)", "parameter"),
-    (r"""['\"]seed['\"]""", "Unsupported seed parameter", "parameter"),
+    (r"\bmax_completion_tokens\b", "Azure o-series max_completion_tokens (use max_output_tokens)", "parameter"),
+    (r"""['"]seed['"]""" , "Unsupported seed parameter", "parameter"),
     (r"\bresponse_format\b", "Legacy response_format (use text.format)", "parameter"),
+    (r"\breasoning_effort\b", "O-series reasoning_effort (migrate to reasoning={'effort': ...})", "parameter"),
+    (r"\btop_p\b", "top_p parameter (not supported on o-series models)", "parameter"),
     # Deprecated env vars
     (r"AZURE_OPENAI_API_VERSION|AZURE_OPENAI_VERSION", "Deprecated api_version env var", "env-var"),
     (r"AZURE_OPENAI_CLIENT_ID", "Should be AZURE_CLIENT_ID", "env-var"),

@@ -259,8 +259,9 @@ python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --json  #
 | `seed` parameter | Not supported in Responses API at all — remove from all requests. |
 | Structured output (`text.format`) | Older models may not enforce `strict: true` JSON schemas reliably. |
 | Tool orchestration | GPT-5+ orchestrates tool calls as part of internal reasoning. Older models on Responses still work but lack this deep integration. |
-| Temperature constraints | When migrating to `gpt-5`, temperature must be omitted or set to `1`. Older models have no such constraint. |
+| Temperature constraints | When migrating to `gpt-5` or o-series, temperature must be omitted or set to `1`. |
 | `max_output_tokens` | Minimum is **16** on Azure OpenAI. Values below 16 return a 400 error. |
+| **O-series models** | `o1`, `o3-mini`, `o3`, `o4-mini` have specific constraints: `temperature` must be `1`, `top_p` not supported, `max_completion_tokens` must be migrated to `max_output_tokens` (set to 4096+), `reasoning_effort` migrates to `reasoning={"effort": "..."}`. See the [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md#o-series-reasoning-models-o1-o3-mini-o3-o4-mini). |
 
 **Recommendation:** If staying on an older model (gpt-4o, gpt-4), the migration to Responses API works for core functionality. For full benefit (especially tool orchestration and reasoning), upgrade to gpt-5.1 or gpt-5.2 — both have broad cross-region availability.
 
