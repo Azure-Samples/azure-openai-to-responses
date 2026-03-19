@@ -262,7 +262,7 @@ python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --json  #
 | Temperature constraints | When migrating to `gpt-5`, temperature must be omitted or set to `1`. Older models have no such constraint. |
 | `max_output_tokens` | Minimum is **16** on Azure OpenAI. Values below 16 return a 400 error. |
 
-**Recommendation:** If staying on an older model (gpt-4o, gpt-4), the migration to Responses API works for core functionality. For full benefit (especially tool orchestration and reasoning), upgrade to gpt-4.1+ or gpt-5.
+**Recommendation:** If staying on an older model (gpt-4o, gpt-4), the migration to Responses API works for core functionality. For full benefit (especially tool orchestration and reasoning), upgrade to gpt-5.1 or gpt-5.2 — both have broad cross-region availability.
 
 ---
 
