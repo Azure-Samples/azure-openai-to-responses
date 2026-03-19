@@ -171,7 +171,7 @@ def cmd_prepare(args: argparse.Namespace) -> int:
     workdir = Path(args.workdir).resolve()
     workdir.mkdir(parents=True, exist_ok=True)
 
-    scanner = Path(__file__).resolve().parent.parent / ".github" / "skills" / "move-to-openai-responses" / "scripts" / "detect_legacy.py"
+    scanner = Path(__file__).resolve().parent.parent / ".github" / "skills" / "azure-openai-to-responses" / "scripts" / "detect_legacy.py"
     if not scanner.exists():
         print(f"Error: scanner not found at {scanner}", file=sys.stderr)
         return 1
@@ -253,7 +253,7 @@ def cmd_status(args: argparse.Namespace) -> int:
         print("No repos found. Run 'bulk prepare' first.", file=sys.stderr)
         return 1
 
-    scanner = Path(__file__).resolve().parent.parent / ".github" / "skills" / "move-to-openai-responses" / "scripts" / "detect_legacy.py"
+    scanner = Path(__file__).resolve().parent.parent / ".github" / "skills" / "azure-openai-to-responses" / "scripts" / "detect_legacy.py"
 
     for repo_short, info in manifest["repos"].items():
         if info.get("status") == "error" or not info.get("path"):

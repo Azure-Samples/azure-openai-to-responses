@@ -62,7 +62,7 @@ The agent will:
 4. **Verify** by re-running the scanner (zero hits) and your tests (`pytest`)
 5. **Report** a summary of everything changed and any manual follow-ups
 
-> **Prefer hands-on?** Skip the agent and follow [SKILL.md](.github/skills/move-to-openai-responses/SKILL.md) step by step.  The [cheat sheet](.github/skills/move-to-openai-responses/references/cheat-sheet.md) has copy-paste code for every pattern.
+> **Prefer hands-on?** Skip the agent and follow [SKILL.md](.github/skills/azure-openai-to-responses/SKILL.md) step by step.  The [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md) has copy-paste code for every pattern.
 
 ### Step 3 — Verify
 
@@ -117,8 +117,8 @@ This automatically:
 For each repo in the work directory, pick your method:
 
 - **Agent:** Open the repo in VS Code → `@azure-openai-to-responses migrate this app`
-- **Skill:** Feed [SKILL.md](.github/skills/move-to-openai-responses/SKILL.md) to your LLM
-- **Manual:** Follow the skill step-by-step with the [cheat sheet](.github/skills/move-to-openai-responses/references/cheat-sheet.md)
+- **Skill:** Feed [SKILL.md](.github/skills/azure-openai-to-responses/SKILL.md) to your LLM
+- **Manual:** Follow the skill step-by-step with the [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md)
 
 ### Step 3 — Review status
 
@@ -156,7 +156,7 @@ When prompted, you can choose:
 
 ## C. Skill-only (no agent)
 
-The migration knowledge lives in a self-contained [SKILL.md](.github/skills/move-to-openai-responses/SKILL.md) that any LLM can follow — no VS Code agent required.
+The migration knowledge lives in a self-contained [SKILL.md](.github/skills/azure-openai-to-responses/SKILL.md) that any LLM can follow — no VS Code agent required.
 
 ### With VS Code Copilot Chat
 
@@ -164,7 +164,7 @@ Add to your `.github/copilot-instructions.md`:
 
 ```markdown
 When asked to migrate from Chat Completions to Responses API, follow:
-.github/skills/move-to-openai-responses/SKILL.md
+.github/skills/azure-openai-to-responses/SKILL.md
 ```
 
 Then ask: *"Migrate this file from Chat Completions to Responses API."*
@@ -174,14 +174,14 @@ Then ask: *"Migrate this file from Chat Completions to Responses API."*
 Paste the skill file as context:
 
 ```bash
-cat .github/skills/move-to-openai-responses/SKILL.md
+cat .github/skills/azure-openai-to-responses/SKILL.md
 ```
 
 The skill includes:
 - Step-by-step migration instructions with parameter mapping tables
 - Client constructor patterns (sync, async, EntraID, API key, multi-tenant)
 - Acceptance criteria checklist (code, tests, behavioral gates)
-- Links to [cheat-sheet.md](.github/skills/move-to-openai-responses/references/cheat-sheet.md) (all code snippets), [test-migration.md](.github/skills/move-to-openai-responses/references/test-migration.md) (mock/snapshot rewrites), and [troubleshooting.md](.github/skills/move-to-openai-responses/references/troubleshooting.md) (common errors + gotchas)
+- Links to [cheat-sheet.md](.github/skills/azure-openai-to-responses/references/cheat-sheet.md) (all code snippets), [test-migration.md](.github/skills/azure-openai-to-responses/references/test-migration.md) (mock/snapshot rewrites), and [troubleshooting.md](.github/skills/azure-openai-to-responses/references/troubleshooting.md) (common errors + gotchas)
 
 ### Scanner standalone
 
@@ -191,7 +191,7 @@ The scanner works independently — no agent or LLM needed:
 python migrate.py scan /path/to/your-app
 
 # Or call the script directly
-python .github/skills/move-to-openai-responses/scripts/detect_legacy.py /path/to/your-app
+python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py /path/to/your-app
 ```
 
 ---
@@ -314,7 +314,7 @@ azure-openai-to-responses/
 │   ├── agents/
 │   │   └── azure-openai-to-responses.agent.md  # Copilot agent (orchestrator)
 │   └── skills/
-│       └── move-to-openai-responses/
+│       └── azure-openai-to-responses/
 │           ├── SKILL.md                    # Core migration knowledge
 │           ├── references/
 │           │   ├── cheat-sheet.md          # All code snippets & patterns

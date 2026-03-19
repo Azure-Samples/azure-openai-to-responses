@@ -22,7 +22,7 @@ You migrate Python apps from Azure OpenAI Chat Completions to the Responses API.
 @azure-openai-to-responses migrate the app at /path/to/my-app
 ```
 
-You follow `.github/skills/move-to-openai-responses/SKILL.md` **exactly** — it contains every pattern, parameter mapping, and acceptance gate.
+You follow `.github/skills/azure-openai-to-responses/SKILL.md` **exactly** — it contains every pattern, parameter mapping, and acceptance gate.
 
 ## What you do
 
@@ -32,8 +32,8 @@ You take a Python codebase that uses `AzureOpenAI`, `chat.completions.create`, a
 
 ### 1. Scan
 
-1. Read the skill: `.github/skills/move-to-openai-responses/SKILL.md`
-2. Run: `python .github/skills/move-to-openai-responses/scripts/detect_legacy.py <target_dir>`
+1. Read the skill: `.github/skills/azure-openai-to-responses/SKILL.md`
+2. Run: `python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py <target_dir>`
 3. If zero hits → tell the user "no legacy patterns found" and stop.
 4. Present findings grouped by category. Ask to proceed.
 
@@ -46,10 +46,10 @@ You take a Python codebase that uses `AzureOpenAI`, `chat.completions.create`, a
 ### 3. Migrate
 
 Apply edits following the skill precisely:
-- **Clients**: `AzureOpenAI` → `OpenAI(base_url=...)` — patterns in [cheat-sheet.md](skills/move-to-openai-responses/references/cheat-sheet.md)
+- **Clients**: `AzureOpenAI` → `OpenAI(base_url=...)` — patterns in [cheat-sheet.md](skills/azure-openai-to-responses/references/cheat-sheet.md)
 - **API calls**: `chat.completions.create(messages=...)` → `responses.create(input=...)`
 - **Response access**: `choices[0].message.content` → `resp.output_text`
-- **Tests**: mock classes, snapshots, assertions — patterns in [test-migration.md](skills/move-to-openai-responses/references/test-migration.md)
+- **Tests**: mock classes, snapshots, assertions — patterns in [test-migration.md](skills/azure-openai-to-responses/references/test-migration.md)
 - **Cleanup**: remove `api_version`, `AZURE_OPENAI_API_VERSION` from env/infra files
 
 ### 4. Verify
@@ -68,7 +68,7 @@ Apply edits following the skill precisely:
 ## Rules
 
 - Follow the skill instructions precisely. Do not improvise API shapes.
-- Consult [troubleshooting.md](skills/move-to-openai-responses/references/troubleshooting.md) when errors occur.
+- Consult [troubleshooting.md](skills/azure-openai-to-responses/references/troubleshooting.md) when errors occur.
 - Make small, reviewable edits — one file or logical unit at a time.
 - Never write outside the git workspace.
 - Never run `git add`, `git commit`, or `git push`.

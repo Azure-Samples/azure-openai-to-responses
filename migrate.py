@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SCRIPTS = ROOT / ".github" / "skills" / "move-to-openai-responses" / "scripts"
+SCRIPTS = ROOT / ".github" / "skills" / "azure-openai-to-responses" / "scripts"
 TOOLS = ROOT / "tools"
 
 
@@ -160,7 +160,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 ║  ─────────────────────────────────                               ║
 ║  1. Scan:    python migrate.py scan /path/to/your-app            ║
 ║  2. Migrate: @azure-openai-to-responses migrate /path/...        ║
-║     Or follow .github/skills/move-to-openai-responses/SKILL.md  ║
+║     Or follow .github/skills/azure-openai-to-responses/SKILL.md ║
 ║  3. Verify:  python migrate.py scan /path/to/your-app            ║
 ║              cd /path/to/your-app && pytest                      ║
 ║                                                                  ║
@@ -173,7 +173,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 ║                                                                  ║
 ║  APPROACH C: Skill-only (no agent)                               ║
 ║  ─────────────────────────────────                               ║
-║  Feed .github/skills/move-to-openai-responses/SKILL.md to       ║
+║  Feed .github/skills/azure-openai-to-responses/SKILL.md to      ║
 ║  any LLM (Copilot, Claude, ChatGPT) as context, then ask it     ║
 ║  to migrate your code.                                           ║
 ║                                                                  ║

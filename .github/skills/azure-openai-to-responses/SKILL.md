@@ -158,7 +158,7 @@ For client setup code examples (sync, async, EntraID, API key, multi-tenant), se
 Run the [detect_legacy.py](./scripts/detect_legacy.py) script to find all call sites that need migration:
 
 ```bash
-python .github/skills/move-to-openai-responses/scripts/detect_legacy.py .
+python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py .
 ```
 
 Or run these searches manually — every match is a migration target:
