@@ -74,7 +74,7 @@ Run the built-in model compatibility tool to see what's available with Responses
 python migrate.py models --subscription YOUR_SUB_ID --location YOUR_REGION
 ```
 
-This queries Azure ARM live and shows a compatibility matrix — which models support Responses, structured output, tools, etc. Use `--filter gpt-4.1,gpt-5` to narrow results or `--json` for scripting.
+This queries Azure ARM live and shows a compatibility matrix — which models support Responses, structured output, tools, etc. Use `--filter gpt-5.1,gpt-5.2` to narrow results or `--json` for scripting.
 
 ### 3. Full model support reference
 
@@ -93,9 +93,9 @@ This queries Azure ARM live and shows a compatibility matrix — which models su
 > - **Tool orchestration**: GPT-5+ orchestrates tool calls as part of internal reasoning. Older models on Responses still work but lack this deep integration.
 > - **Temperature constraints**: When migrating to `gpt-5`, temperature must be omitted or set to `1`. Older models have no such constraint.
 
-**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model is older than `gpt-4.1`, proactively tell the user:
+**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model is older than `gpt-5.1`, proactively tell the user:
 - The migration will work for basic text, chat, streaming, and tools on their current model.
-- Newer models (`gpt-4.1`, `gpt-4.1-mini`, `gpt-5`) offer better tool orchestration, structured output enforcement, and reasoning.
+- Newer models (`gpt-5.1`, `gpt-5.2`) offer better tool orchestration, structured output enforcement, reasoning, and cross-region availability.
 - They should consider upgrading their deployment when ready — it's not blocking the migration.
 
 Do not block or refuse to migrate based on model version. The advisory is informational.
