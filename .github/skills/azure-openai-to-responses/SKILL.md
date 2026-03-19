@@ -66,9 +66,21 @@ except Exception as e:
 
 If this returns a 404, the deployment's model doesn't support Responses yet — check the reference below or redeploy with a supported model.
 
-### 2. Full model support reference
+### 2. Check available models in your region (recommended)
 
-For a comprehensive list of models with Responses API support (including per-region availability), see **https://aka.ms/openai/start**.
+Run the built-in model compatibility tool to see what's available with Responses API support in your specific region:
+
+```bash
+python migrate.py models --subscription YOUR_SUB_ID --location YOUR_REGION
+```
+
+This queries Azure ARM live and shows a compatibility matrix — which models support Responses, structured output, tools, etc. Use `--filter gpt-4.1,gpt-5` to narrow results or `--json` for scripting.
+
+### 3. Full model support reference
+
+- **Live query**: `python migrate.py models` (see above — region-specific, always up to date)
+- **Browse availability**: [Model summary table and region availability](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure?tabs=global-standard-aoai%2Cglobal-standard&pivots=azure-openai#model-summary-table-and-region-availability)
+- **Quickstart & guidance**: **https://aka.ms/openai/start**
 
 ### ⚠️ Older model limitations
 
