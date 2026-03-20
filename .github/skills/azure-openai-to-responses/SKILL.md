@@ -106,6 +106,22 @@ Do not block or refuse to migrate based on model version. The advisory is inform
 
 > **The Responses API is a server-side concern.** Migrate your Python backend; the frontend's HTTP contract should stay unchanged unless your backend is a thin pass-through — in that case, consider adopting the Responses request shape to eliminate a translation layer. If the frontend calls OpenAI directly with a client-side key, move those calls to a backend first.
 
+### `@microsoft/ai-chat-protocol` deprecation
+
+The `@microsoft/ai-chat-protocol` npm package is deprecated and should be replaced with [`ndjson-readablestream`](https://www.npmjs.com/package/ndjson-readablestream). If you encounter it in a frontend:
+
+1. Replace the CDN script tag:
+   ```html
+   <!-- Before -->
+   <script src="https://cdn.jsdelivr.net/npm/@microsoft/ai-chat-protocol@.../dist/iife/index.js"></script>
+   <!-- After -->
+   <script src="https://cdn.jsdelivr.net/npm/ndjson-readablestream@1.0.7/dist/ndjson-readablestream.umd.js"></script>
+   ```
+2. Remove the `AIChatProtocolClient` instantiation (`new ChatProtocol.AIChatProtocolClient("/chat")`).
+3. Replace `client.getStreamedCompletion(messages)` with a direct `fetch()` call to the backend streaming endpoint.
+4. Replace `for await (const response of result)` with `for await (const chunk of readNDJSONStream(response.body))`.
+5. Update property access from `response.delta.content` / `response.error` to `chunk.delta.content` / `chunk.error`.
+
 ---
 
 ## Goals
