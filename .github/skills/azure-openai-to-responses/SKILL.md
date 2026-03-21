@@ -93,7 +93,18 @@ This queries Azure ARM live and shows a compatibility matrix — which models su
 > - **Tool orchestration**: GPT-5+ orchestrates tool calls as part of internal reasoning. Older models on Responses still work but lack this deep integration.
 > - **Temperature constraints**: When migrating to `gpt-5`, temperature must be omitted or set to `1`. Older models have no such constraint.
 
-**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model is older than `gpt-5.1`, proactively tell the user:
+### O-series reasoning models (o1, o3-mini, o3, o4-mini)
+
+O-series models have unique parameter constraints. When migrating apps that target o-series models:
+
+- **`temperature`**: Must be `1` (or omitted). O-series models do not accept other values.
+- **`max_completion_tokens` → `max_output_tokens`**: Apps using the Azure-specific `max_completion_tokens` must switch to `max_output_tokens`. Set high values (4096+) because reasoning tokens count against the limit.
+- **`reasoning_effort`**: If the app uses `reasoning_effort` (low/medium/high), keep it — the Responses API supports this parameter for o-series models.
+- **Streaming behavior**: O-series models may buffer output until reasoning completes before emitting text delta events. Streaming still works, but the first `response.output_text.delta` may arrive after a longer delay than with GPT models.
+- **`top_p`**: Not supported on o-series — remove if present.
+- **Tool use**: O-series models support tools via the Responses API the same as GPT models, but tool call orchestration quality varies by model.
+
+**Action — proactive model advisory**: During the scan phase, check which model the app targets (deployment names, env vars, config). If the model is `gpt-4o` or older (not gpt-4.1+), proactively tell the user:
 - The migration will work for basic text, chat, streaming, and tools on their current model.
 - Newer models (`gpt-5.1`, `gpt-5.2`) offer better tool orchestration, structured output enforcement, reasoning, and cross-region availability.
 - They should consider upgrading their deployment when ready — it's not blocking the migration.

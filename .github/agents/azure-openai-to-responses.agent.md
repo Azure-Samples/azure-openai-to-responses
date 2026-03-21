@@ -28,8 +28,11 @@ You take a Python codebase that uses `AzureOpenAI`, `chat.completions.create`, a
 1. Read the skill: `.github/skills/azure-openai-to-responses/SKILL.md`
 2. Run: `python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py <target_dir>`
 3. If zero hits → tell the user "no legacy patterns found" and stop.
-4. **Model advisory**: Check which model the app targets (look for deployment names/env vars like `gpt-4o`, `gpt-4o-mini`, `gpt-4` in code, `.env`, Bicep, or config files). If the model is older than `gpt-5.1`, include an advisory:
-   > **Model note:** Your app targets `<model>`. The Responses API migration will work for basic text, chat, streaming, and tools — but newer models (`gpt-5.1`, `gpt-5.2`) offer better tool orchestration, structured output, reasoning support, and cross-region availability. Consider upgrading your deployment when ready. See the [known limitations](#known-limitations-with-older-models) section for details.
+4. **Model advisory**: Check which model the app targets (look for deployment names/env vars in code, `.env`, Bicep, or config files).
+   - If the model is **o-series** (o1, o3-mini, o3, o4-mini): note the o-series-specific parameter constraints (temperature, top_p, max_completion_tokens, reasoning_effort) from the skill.
+   - If the model is **gpt-4o or older** (not gpt-4.1+): include an upgrade advisory:
+     > **Model note:** Your app targets `<model>`. The Responses API migration will work for basic text, chat, streaming, and tools — but newer models (`gpt-5.1`, `gpt-5.2`) offer better tool orchestration, structured output, reasoning support, and cross-region availability. Consider upgrading your deployment when ready.
+   - If the model is **gpt-4.1+** or **gpt-5+**: no advisory needed — these models fully support all Responses API features.
 5. Present findings grouped by category. Ask to proceed.
 
 ### 2. Plan

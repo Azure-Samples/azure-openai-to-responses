@@ -332,6 +332,47 @@ messages = [
 resp = client.responses.create(model=deployment, input=messages, store=False)
 ```
 
+## O-series reasoning models (o1, o3-mini, o3, o4-mini)
+
+O-series models have unique parameter constraints when migrating to Responses API.
+
+### Parameter mapping for o-series
+
+| Chat Completions (o-series) | Responses API | Notes |
+|---|---|---|
+| `max_completion_tokens` | `max_output_tokens` | Set high (4096+) — reasoning tokens count against the limit |
+| `reasoning_effort` | `reasoning.effort` | Keep as-is if present (low/medium/high) |
+| `temperature` | Remove or set to `1` | O-series only accepts `1` |
+| `top_p` | Remove | Not supported on o-series |
+| `seed` | Remove | Not supported in Responses API |
+
+### O-series before/after
+
+Before (Chat Completions with o-series):
+```python
+resp = client.chat.completions.create(
+    model="o4-mini",
+    messages=[{"role": "user", "content": "Solve this step by step: 2x + 5 = 13"}],
+    max_completion_tokens=4096,
+    reasoning_effort="medium",
+)
+print(resp.choices[0].message.content)
+```
+
+After (Responses API):
+```python
+resp = client.responses.create(
+    model=deployment,
+    input="Solve this step by step: 2x + 5 = 13",
+    max_output_tokens=4096,
+    reasoning={"effort": "medium"},
+    store=False,
+)
+print(resp.output_text)
+```
+
+> **Note**: O-series models may buffer output during reasoning before emitting text deltas. Streaming still works but the first `response.output_text.delta` event may arrive after a longer delay than with GPT models.
+
 ## Accessing reasoning tokens
 ```python
 # Reasoning models use internal reasoning — you can see how many reasoning tokens were used

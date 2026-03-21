@@ -24,7 +24,10 @@
 | `json.loads(resp.output_text)` raises `JSONDecodeError` | Schema not enforced or model doesn't support strict JSON | Ensure `"strict": True` in schema, and verify model supports structured output |
 | Streaming yields no `delta` events | Checking wrong event type | Filter on `event.type == "response.output_text.delta"`, not Chat's `chat.completion.chunk` |
 | Tool calls loop infinitely | Missing tool result in follow-up `input` | After executing a tool, append a `{"role": "tool", ...}` item to `input` in the next request |
-| `temperature` error with GPT-5 | Explicit `temperature` value other than 1 | Remove `temperature` or set to `1` for GPT-5 models |
+| `temperature` error with GPT-5 or o-series | Explicit `temperature` value other than 1 | Remove `temperature` or set to `1` for GPT-5 and o-series models (o1, o3-mini, o3, o4-mini) |
+| `top_p` error with o-series | `top_p` not supported | Remove `top_p` when targeting o-series models |
+| `max_completion_tokens` not recognized | Using Azure-specific parameter | Replace `max_completion_tokens` with `max_output_tokens`. Set to 4096+ for o-series (reasoning tokens count against the limit). |
+| Empty/truncated output from o-series | `max_output_tokens` too low | O-series uses reasoning tokens internally. Set `max_output_tokens=4096` or higher — not 500–1000. |
 | `400 integer_below_min_value` for `max_output_tokens` | Value below 16 | Azure OpenAI enforces `max_output_tokens >= 16`. Use 50+ for smoke tests, 1000+ for production. |
 | `429 Too Many Requests` mid-stream | Rate limited by Azure OpenAI | Stream breaks silently without error handling. Always wrap `async for event in await coroutine:` in `try/except` and yield `{"error": str(e)}` to the frontend. |
 | `AzureDeveloperCliCredential` → `CredentialUnavailableError` | Wrong tenant or not logged in | Pass `tenant_id=os.getenv("AZURE_TENANT_ID")` explicitly. Run `azd auth login --tenant <tenant-id>` locally. |
@@ -40,7 +43,10 @@
 5. For `text.format`, supply a proper dict (e.g., `{"type": "json_schema", "name": "Output", "schema": ..., "strict": True}`), not a plain string.
 6. The `seed` parameter is not supported in Responses; remove it from requests.
 7. **Reasoning**: Only include `reasoning` if the original code already used it. Do not add `reasoning` to API calls that didn't have it — many models (e.g., gpt-4o-mini) don't support this parameter.
-8. **`max_output_tokens` sizing**: For reasoning models (GPT-5-mini, GPT-5), use `max_output_tokens=1000` or higher — not 50–200. The model uses reasoning tokens internally before generating visible output; too-low limits cause truncated or empty responses.
+8. **`max_output_tokens` sizing**: For reasoning models (GPT-5-mini, GPT-5, o-series), use `max_output_tokens=4096` or higher — not 50–1000. The model uses reasoning tokens internally before generating visible output; too-low limits cause truncated or empty responses.
+9. **O-series `max_completion_tokens`**: If the original code used `max_completion_tokens` (Azure-specific for o-series), replace with `max_output_tokens`. The Responses API does not accept `max_completion_tokens`.
+10. **O-series `reasoning_effort`**: If the original code uses `reasoning_effort` (low/medium/high), migrate it to `reasoning={"effort": "<value>"}` in the Responses API call.
+11. **O-series streaming delay**: O-series models perform internal reasoning before generating output. When streaming, expect a longer delay before the first `response.output_text.delta` event. This is normal — the model is reasoning, not hung.
 9. **`_azure_ad_token_provider` is gone**: `AsyncOpenAI` / `OpenAI` have no `_azure_ad_token_provider` attribute. Tests or code that access this attribute will fail with `AttributeError`. The token provider is passed as `api_key` and is not inspectable on the client object.
 10. **Snapshot / golden files**: If the test suite uses snapshot testing, **all** snapshot files containing Chat Completions streaming shapes (`choices[0]`, `content_filter_results`, `function_call`, etc.) must be updated to the new Responses shape. This is easy to miss and causes snapshot assertion failures.
 11. **Mock monkeypatch path**: The monkeypatch target changes from `openai.resources.chat.AsyncCompletions.create` → `openai.resources.responses.AsyncResponses.create` (or `Responses.create` for sync). Using the old path silently does nothing — the mock won't intercept, and tests hit the real API or fail.
