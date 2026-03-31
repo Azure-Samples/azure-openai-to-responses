@@ -445,3 +445,88 @@ resp = client.responses.create(
 )
 print(resp.output_text)
 ```
+
+## Microsoft Agent Framework (MAF) migration
+
+The framework client class changes from `OpenAIChatClient` to `OpenAIResponsesClient`. Constructor args are unchanged.
+
+Before:
+```python
+from agent_framework.openai import OpenAIChatClient
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
+
+async_credential = DefaultAzureCredential()
+token_provider = get_bearer_token_provider(async_credential, "https://cognitiveservices.azure.com/.default")
+
+client = OpenAIChatClient(
+    base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT']}/openai/v1/",
+    api_key=token_provider,
+    model_id=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"],
+)
+```
+
+After:
+```python
+from agent_framework.openai import OpenAIResponsesClient
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
+
+async_credential = DefaultAzureCredential()
+token_provider = get_bearer_token_provider(async_credential, "https://cognitiveservices.azure.com/.default")
+
+client = OpenAIResponsesClient(
+    base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT']}/openai/v1/",
+    api_key=token_provider,
+    model_id=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"],
+)
+```
+
+> **Note**: The `Agent`, `MCPStreamableHTTPTool`, and other MAF APIs remain unchanged — only the client class import and instantiation change.
+
+## LangChain (`langchain-openai`) migration
+
+Add `use_responses_api=True` to `ChatOpenAI()`. Also update message content access from `.content` to `.text`.
+
+Before:
+```python
+import azure.identity
+from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
+
+token_provider = azure.identity.get_bearer_token_provider(
+    azure.identity.DefaultAzureCredential(),
+    "https://cognitiveservices.azure.com/.default",
+)
+model = ChatOpenAI(
+    model=os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+    base_url=os.environ["AZURE_OPENAI_ENDPOINT"] + "/openai/v1/",
+    api_key=token_provider,
+)
+
+# ... agent invocation ...
+result = await agent.ainvoke({"messages": [HumanMessage(content=query)]})
+print(result['messages'][-1].content)
+```
+
+After:
+```python
+import azure.identity
+from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
+
+token_provider = azure.identity.get_bearer_token_provider(
+    azure.identity.DefaultAzureCredential(),
+    "https://cognitiveservices.azure.com/.default",
+)
+model = ChatOpenAI(
+    model=os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT"),
+    base_url=os.environ["AZURE_OPENAI_ENDPOINT"] + "/openai/v1/",
+    api_key=token_provider,
+    use_responses_api=True,
+)
+
+# ... agent invocation ...
+result = await agent.ainvoke({"messages": [HumanMessage(content=query)]})
+print(result['messages'][-1].text)
+```
+
+> **Key changes**: (1) `use_responses_api=True` in constructor, (2) `.content` → `.text` on response messages.

@@ -31,6 +31,9 @@
 | `400 integer_below_min_value` for `max_output_tokens` | Value below 16 | Azure OpenAI enforces `max_output_tokens >= 16`. Use 50+ for smoke tests, 1000+ for production. |
 | `429 Too Many Requests` mid-stream | Rate limited by Azure OpenAI | Stream breaks silently without error handling. Always wrap `async for event in await coroutine:` in `try/except` and yield `{"error": str(e)}` to the frontend. |
 | `AzureDeveloperCliCredential` → `CredentialUnavailableError` | Wrong tenant or not logged in | Pass `tenant_id=os.getenv("AZURE_TENANT_ID")` explicitly. Run `azd auth login --tenant <tenant-id>` locally. |
+| `404 Not Found` using GitHub Models (`models.github.ai`) | GitHub Models does not support Responses API | Remove the GitHub Models code path entirely. Use Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support). |
+| `AttributeError: 'OpenAIResponsesClient' has no attribute ...` (MAF) | Using old `OpenAIChatClient` import | Replace `from agent_framework.openai import OpenAIChatClient` with `from agent_framework.openai import OpenAIResponsesClient`. |
+| LangChain agent returns empty or fails with tool calls | `ChatOpenAI` not using Responses API | Add `use_responses_api=True` to `ChatOpenAI(...)`. Also change `.content` → `.text` on response messages. |
 
 ---
 
@@ -56,3 +59,6 @@
 15. **`tenant_id` for `AzureDeveloperCliCredential`**: When the Azure OpenAI resource is in a different tenant, you **must** pass `tenant_id` explicitly — `AzureDeveloperCliCredential(tenant_id=os.getenv("AZURE_TENANT_ID"))`. Without it, the credential silently uses the wrong tenant and returns `401`.
 16. **Rate limits surface differently in streaming**: With Chat Completions, a 429 typically prevented the stream from starting. With Responses API streaming, a 429 can occur **mid-stream** — the async iterator raises an exception. Always wrap the streaming loop in `try/except` and yield an error JSON line so the frontend can handle it gracefully.
 17. **Streaming error handling is mandatory for web apps**: The pattern `try: async for event in await coroutine: ... except Exception as e: yield json.dumps({"error": str(e)})` is critical. Without it, the SSE/JSONL stream silently dies on any server-side error and the frontend hangs.
+18. **GitHub Models does not support Responses API**: If the app has a GitHub Models code path (`API_HOST == "github"`, `base_url` pointing to `models.github.ai` or `models.inference.ai.azure.com`), remove it entirely. There is no migration path — switch to Azure OpenAI, OpenAI, or a compatible local endpoint.
+19. **MAF `OpenAIChatClient` → `OpenAIResponsesClient`**: The class was renamed. The import path changes from `agent_framework.openai.OpenAIChatClient` to `agent_framework.openai.OpenAIResponsesClient`. Constructor args (`base_url`, `api_key`, `model_id`) are unchanged.
+20. **LangChain `.content` → `.text`**: When `use_responses_api=True` is set on `ChatOpenAI`, response messages use `.text` instead of `.content`. Code accessing `result['messages'][-1].content` must change to `result['messages'][-1].text`.
