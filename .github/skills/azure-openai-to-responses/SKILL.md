@@ -115,13 +115,10 @@ Do not block or refuse to migrate based on model version. The advisory is inform
 
 > **GitHub Models (`models.github.ai`, `models.inference.ai.azure.com`) does not support the Responses API.**
 
-If the codebase has a GitHub Models code path (look for `API_HOST == "github"`, `GITHUB_TOKEN`, or `base_url` pointing to `models.github.ai` or `models.inference.ai.azure.com`), **remove it entirely** during migration. The Responses API requires Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support).
+If the codebase has a GitHub Models code path (look for `base_url` pointing to `models.github.ai` or `models.inference.ai.azure.com`), **remove it entirely** during migration. The Responses API requires Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support).
 
 Action during scan:
 - Flag any GitHub Models code paths for removal.
-- Update `.env` / `.env.sample` to remove `github` from `API_HOST` options and remove `GITHUB_MODEL`.
-- If `github` was the default `API_HOST`, change the default to `azure`.
-- If the app falls through to a generic `else` clause for GitHub Models, add an explicit `raise ValueError` for unsupported hosts.
 
 ---
 
@@ -274,7 +271,6 @@ rg "AZURE_OPENAI_CLIENT_ID"  # should be AZURE_CLIENT_ID
 
 # GitHub Models endpoints (must remove — Responses API not supported)
 rg "models\.github\.ai|models\.inference\.ai\.azure"
-rg "GITHUB_MODEL"
 
 # Framework-level legacy patterns (must update)
 rg "OpenAIChatClient"         # MAF: replace with OpenAIResponsesClient
