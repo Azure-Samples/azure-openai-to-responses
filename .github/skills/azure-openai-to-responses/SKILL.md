@@ -111,6 +111,43 @@ O-series models have unique parameter constraints. When migrating apps that targ
 
 Do not block or refuse to migrate based on model version. The advisory is informational.
 
+### GitHub Models does NOT support the Responses API
+
+> **GitHub Models (`models.github.ai`, `models.inference.ai.azure.com`) does not support the Responses API.**
+
+If the codebase has a GitHub Models code path (look for `base_url` pointing to `models.github.ai` or `models.inference.ai.azure.com`), **remove it entirely** during migration. The Responses API requires Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support).
+
+Action during scan:
+- Flag any GitHub Models code paths for removal.
+
+---
+
+## Framework Migration
+
+Many apps use higher-level frameworks on top of OpenAI. When migrating these, the framework's own API changes — not just the underlying OpenAI calls.
+
+### Microsoft Agent Framework (MAF)
+
+`OpenAIChatClient` → `OpenAIResponsesClient`. The import path and class name change; constructor args (`base_url`, `api_key`, `model_id`) stay the same.
+
+| Before | After |
+|--------|-------|
+| `from agent_framework.openai import OpenAIChatClient` | `from agent_framework.openai import OpenAIResponsesClient` |
+| `OpenAIChatClient(base_url=..., api_key=..., model_id=...)` | `OpenAIResponsesClient(base_url=..., api_key=..., model_id=...)` |
+
+No other changes needed — the `Agent` and tool APIs remain the same.
+
+### LangChain (`langchain-openai`)
+
+Add `use_responses_api=True` to `ChatOpenAI()`. Also update response access from `.content` to `.text`.
+
+| Before | After |
+|--------|-------|
+| `ChatOpenAI(model=..., base_url=..., api_key=...)` | `ChatOpenAI(model=..., base_url=..., api_key=..., use_responses_api=True)` |
+| `result['messages'][-1].content` | `result['messages'][-1].text` |
+
+For complete before/after code examples, see [cheat-sheet.md](./references/cheat-sheet.md).
+
 ---
 
 ## Frontend Migration Guidance
@@ -232,6 +269,13 @@ rg "['\"]seed['\"]"      # remove entirely
 rg "AZURE_OPENAI_API_VERSION|AZURE_OPENAI_VERSION"
 rg "AZURE_OPENAI_CLIENT_ID"  # should be AZURE_CLIENT_ID
 
+# GitHub Models endpoints (must remove — Responses API not supported)
+rg "models\.github\.ai|models\.inference\.ai\.azure"
+
+# Framework-level legacy patterns (must update)
+rg "OpenAIChatClient"         # MAF: replace with OpenAIResponsesClient
+rg "ChatOpenAI\(" | grep -v "use_responses_api"  # LangChain: needs use_responses_api=True
+
 # Test infrastructure (must update)
 rg "ChatCompletionChunk|AsyncCompletions\.create" tests/
 rg "_azure_ad_token_provider" tests/
@@ -298,6 +342,9 @@ For troubleshooting errors and gotchas, see [troubleshooting.md](./references/tr
 
 - [ ] Zero matches for `rg "chat\.completions\.create|ChatCompletion\.create|Completion\.create"` in migrated files.
 - [ ] Zero matches for `rg "AzureOpenAI\(|AsyncAzureOpenAI\("` — all constructors use `OpenAI`/`AsyncOpenAI` with the v1 endpoint.
+- [ ] Zero matches for `rg "models\.github\.ai|models\.inference\.ai\.azure"` — GitHub Models code paths removed.
+- [ ] Zero matches for `rg "OpenAIChatClient"` — MAF code uses `OpenAIResponsesClient`.
+- [ ] All `ChatOpenAI(...)` calls include `use_responses_api=True`.
 - [ ] Zero matches for `rg "choices\[0\]"` — all response access uses `resp.output_text` or the Responses output schema.
 - [ ] No `response_format` at top level; all structured output uses `text={"format": {...}}`.
 - [ ] `openai>=1.108.1` and `azure-identity` in `requirements.txt` or `pyproject.toml`; dependencies reinstalled.

@@ -46,6 +46,10 @@ PATTERNS: list[tuple[str, str, str]] = [
     # Deprecated env vars
     (r"AZURE_OPENAI_API_VERSION|AZURE_OPENAI_VERSION", "Deprecated api_version env var", "env-var"),
     (r"AZURE_OPENAI_CLIENT_ID", "Should be AZURE_CLIENT_ID", "env-var"),
+    # GitHub Models (not supported by Responses API — must remove)
+    (r"models\.github\.ai|models\.inference\.ai\.azure", "GitHub Models endpoint (Responses API not supported — remove)", "github-models"),
+    # Framework-level legacy patterns
+    (r"OpenAIChatClient", "MAF OpenAIChatClient (replace with OpenAIResponsesClient)", "framework"),
     # Test infrastructure
     (r"ChatCompletionChunk", "Legacy mock type in tests", "test"),
     (r"AsyncCompletions\.create", "Legacy mock patch path in tests", "test"),
