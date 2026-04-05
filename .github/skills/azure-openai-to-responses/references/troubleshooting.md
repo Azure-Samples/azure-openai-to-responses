@@ -4,6 +4,11 @@
 
 | Error | Fix |
 |-------|-----|
+| `missing_required_parameter: tools[0].name` | Tool definition uses old Chat Completions nested format | Flatten from `{"type": "function", "function": {"name": ...}}` to `{"type": "function", "name": ..., "parameters": ...}` — name, description, parameters go at the top level |
+| `unknown_parameter: input[N].tool_calls` | Multi-turn tool results use old Chat Completions format | Replace `{"role": "assistant", "tool_calls": [...]}` + `{"role": "tool", ...}` with `response.output` items + `{"type": "function_call_output", "call_id": ..., "output": ...}` |
+| `invalid_function_parameters: 'required' is required` | `strict: true` tool missing `required` array | When `strict: true`, all properties must be listed in `required` and `additionalProperties: false` must be set |
+| `invalid_function_parameters: 'additionalProperties' is required` | `strict: true` tool missing `additionalProperties: false` | Add `"additionalProperties": false` to the parameters object |
+| `invalid input[N].id: Expected an ID that begins with 'fc'` | Few-shot function_call ID has wrong prefix | Function call IDs must start with `fc_` (e.g., `fc_example1`), not `call_` |
 | `missing_required_parameter: text.format.name` | Add `"name"` key to the format dict (e.g., `"name": "Output"`) |
 | `invalid_type: text.format` | Ensure `text.format` is a dict with `type`, `name`, `strict`, `schema` keys — not a string |
 | `invalid input content type` | Use `input_text`/`output_text` content types instead of Chat `text` |
@@ -23,7 +28,7 @@
 | Model returns `deployment not found` | `model` param doesn't match your Azure deployment name | Use `model=os.environ["AZURE_OPENAI_DEPLOYMENT"]` — this is the deployment name, not the model name |
 | `json.loads(resp.output_text)` raises `JSONDecodeError` | Schema not enforced or model doesn't support strict JSON | Ensure `"strict": True` in schema, and verify model supports structured output |
 | Streaming yields no `delta` events | Checking wrong event type | Filter on `event.type == "response.output_text.delta"`, not Chat's `chat.completion.chunk` |
-| Tool calls loop infinitely | Missing tool result in follow-up `input` | After executing a tool, append a `{"role": "tool", ...}` item to `input` in the next request |
+| Tool calls loop infinitely | Missing tool result in follow-up `input` | After executing a tool, append a `{"type": "function_call_output", "call_id": ..., "output": ...}` item to `input` in the next request |
 | `temperature` error with GPT-5 or o-series | Explicit `temperature` value other than 1 | Remove `temperature` or set to `1` for GPT-5 and o-series models (o1, o3-mini, o3, o4-mini) |
 | `top_p` error with o-series | `top_p` not supported | Remove `top_p` when targeting o-series models |
 | `max_completion_tokens` not recognized | Using Azure-specific parameter | Replace `max_completion_tokens` with `max_output_tokens`. Set to 4096+ for o-series (reasoning tokens count against the limit). |
@@ -56,3 +61,8 @@
 15. **`tenant_id` for `AzureDeveloperCliCredential`**: When the Azure OpenAI resource is in a different tenant, you **must** pass `tenant_id` explicitly — `AzureDeveloperCliCredential(tenant_id=os.getenv("AZURE_TENANT_ID"))`. Without it, the credential silently uses the wrong tenant and returns `401`.
 16. **Rate limits surface differently in streaming**: With Chat Completions, a 429 typically prevented the stream from starting. With Responses API streaming, a 429 can occur **mid-stream** — the async iterator raises an exception. Always wrap the streaming loop in `try/except` and yield an error JSON line so the frontend can handle it gracefully.
 17. **Streaming error handling is mandatory for web apps**: The pattern `try: async for event in await coroutine: ... except Exception as e: yield json.dumps({"error": str(e)})` is critical. Without it, the SSE/JSONL stream silently dies on any server-side error and the frontend hangs.
+18. **Tool definitions must use flat format**: The Responses API expects `{"type": "function", "name": ..., "parameters": ...}` — not the Chat Completions nested `{"type": "function", "function": {"name": ..., "parameters": ...}}`. This is the most common migration error for function-calling code.
+19. **`pydantic_function_tool()` is incompatible**: The `openai.pydantic_function_tool()` helper still generates the old nested format. Do not use it with `responses.create()`. Define tool schemas manually or flatten the output.
+20. **Tool results use `function_call_output`, not `role: tool`**: After executing a tool, append `{"type": "function_call_output", "call_id": ..., "output": ...}` — not `{"role": "tool", "tool_call_id": ..., "content": ...}`. For the assistant's tool request, use `messages.extend(response.output)` — not a manual `{"role": "assistant", "tool_calls": [...]}` dict.
+21. **`strict: true` requires `required` + `additionalProperties: false`**: When using `strict: true` on a tool, every property must be listed in the `required` array and `additionalProperties` must be `false`. Missing either causes a 400 error.
+22. **Function call IDs have specific prefixes**: When providing few-shot `function_call` items in `input`, the `id` field must start with `fc_` and the `call_id` field must start with `call_` (e.g., `"id": "fc_example1", "call_id": "call_example1"`). Using the old Chat Completions `call_` prefix for `id` is rejected.

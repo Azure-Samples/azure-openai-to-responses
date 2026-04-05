@@ -223,6 +223,14 @@ rg "choices\[0\]\.delta\.content"
 rg "choices\[0\]\.message\.function_call"
 rg "choices\[0\]\.message\.tool_calls"
 
+# Tool definitions in old nested format (must flatten)
+rg '"function":\s*{\s*"name"'
+rg "pydantic_function_tool"
+
+# Tool results in old format (must convert to function_call_output)
+rg '"role":\s*"tool"'
+rg '"tool_call_id"'
+
 # Deprecated parameters (must remove or rename)
 rg "response_format"
 rg "max_tokens\b"        # rename to max_output_tokens
@@ -243,7 +251,10 @@ rg "choices\[0\]" tests/
 
 - **Chat Completions client**: `client.chat.completions.create` → `client.responses.create(...)`.
 - **Azure client constructors**: `AzureOpenAI(...)` → `OpenAI(base_url=..., api_key=...)`.
-- **Tools**: convert function-calling to `tools` with JSON Schema; use `tool_choice`; return tool results as a `tool` role turn in the next request.
+- **Tools**: convert function-calling tool definitions from nested format (`{"type": "function", "function": {"name": ...}}`) to flat Responses format (`{"type": "function", "name": ...}`); use `tool_choice`; return tool results as `{"type": "function_call_output", "call_id": ..., "output": ...}` items (not `{"role": "tool", ...}`).
+- **Tool round-trips**: when the model returns function calls, append `response.output` items to the conversation (not a manual `{"role": "assistant", "tool_calls": [...]}` dict), then append `function_call_output` items for each result.
+- **Few-shot tool examples**: if the conversation includes hardcoded tool call examples, convert them to `{"type": "function_call", "id": "fc_...", "call_id": "fc_...", ...}` + `{"type": "function_call_output", ...}` items. IDs must start with `fc_`.
+- **`pydantic_function_tool()`**: this helper still generates the old nested format and is **not compatible** with `responses.create()`. Replace with manual tool definitions or a flattening wrapper.
 - **Multi-turn**: maintain conversation history in the app; pass prior turns via `input` items.
 - **Formatting**: replace Chat's top-level `response_format` with `text.format` in Responses. Canonical shape: `text={"format": {"type": "json_schema", "name": "Output", "strict": True, "schema": {...}}}`.
 - **Content items**: replace Chat `content[].type: "text"` with Responses `content[].type: "input_text"` for user/system turns.
