@@ -36,6 +36,9 @@
 | `400 integer_below_min_value` for `max_output_tokens` | Value below 16 | Azure OpenAI enforces `max_output_tokens >= 16`. Use 50+ for smoke tests, 1000+ for production. |
 | `429 Too Many Requests` mid-stream | Rate limited by Azure OpenAI | Stream breaks silently without error handling. Always wrap `async for event in await coroutine:` in `try/except` and yield `{"error": str(e)}` to the frontend. |
 | `AzureDeveloperCliCredential` → `CredentialUnavailableError` | Wrong tenant or not logged in | Pass `tenant_id=os.getenv("AZURE_TENANT_ID")` explicitly. Run `azd auth login --tenant <tenant-id>` locally. |
+| `404 Not Found` using GitHub Models (`models.github.ai`) | GitHub Models does not support Responses API | Remove the GitHub Models code path entirely. Use Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support). |
+| `AttributeError: 'OpenAIResponsesClient' has no attribute ...` (MAF) | Using old `OpenAIChatClient` import | Replace `from agent_framework.openai import OpenAIChatClient` with `from agent_framework.openai import OpenAIResponsesClient`. |
+| LangChain agent returns empty or fails with tool calls | `ChatOpenAI` not using Responses API | Add `use_responses_api=True` to `ChatOpenAI(...)`. Also change `.content` → `.text` on response messages. |
 
 ---
 
@@ -66,3 +69,4 @@
 20. **Tool results use `function_call_output`, not `role: tool`**: After executing a tool, append `{"type": "function_call_output", "call_id": ..., "output": ...}` — not `{"role": "tool", "tool_call_id": ..., "content": ...}`. For the assistant's tool request, use `messages.extend(response.output)` — not a manual `{"role": "assistant", "tool_calls": [...]}` dict.
 21. **`strict: true` requires `required` + `additionalProperties: false`**: When using `strict: true` on a tool, every property must be listed in the `required` array and `additionalProperties` must be `false`. Missing either causes a 400 error.
 22. **Function call IDs have specific prefixes**: When providing few-shot `function_call` items in `input`, the `id` field must start with `fc_` and the `call_id` field must start with `call_` (e.g., `"id": "fc_example1", "call_id": "call_example1"`). Using the old Chat Completions `call_` prefix for `id` is rejected.
+23. **GitHub Models does not support Responses API**: If the app has a GitHub Models code path (`base_url` pointing to `models.github.ai` or `models.inference.ai.azure.com`), remove it entirely. There is no migration path — switch to Azure OpenAI, OpenAI, or a compatible local endpoint.
