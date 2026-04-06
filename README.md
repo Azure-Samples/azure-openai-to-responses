@@ -6,13 +6,7 @@ Migrate your Python apps from the **AzureOpenAI client with Chat Completions API
 
 > **⚠️ Before you start:** Check that your deployed model supports the Responses API — run `python migrate.py models --subscription YOUR_SUB_ID --location YOUR_REGION` or see the [model compatibility](#model-compatibility) section. Older models like `gpt-4o` support Responses but **not all features** (see [known limitations](#known-limitations-with-older-models)).
 
-### Install as an Agent Skill
-
-This skill follows the [Agent Skills](https://agentskills.io/) format and works across Claude Code, VS Code Copilot, Cursor, Gemini CLI, Amp, and other compatible agents:
-
-```bash
-npx skills add Azure-Samples/azure-openai-to-responses
-```
+> **New:** This skill follows the open [Agent Skills](https://agentskills.io/) format — install it in one command and use it from [many agents beyond VS Code](#agent-skills-compatibility).
 
 ### What changes?
 
@@ -22,6 +16,34 @@ npx skills add Azure-Samples/azure-openai-to-responses
 | `client.chat.completions.create(messages=...)` | `client.responses.create(input=...)` |
 | `resp.choices[0].message.content` | `resp.output_text` |
 | `api_version="2024-12-01-preview"` | Not needed — `/openai/v1/` is stable |
+
+---
+
+## Agent Skills compatibility
+
+This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent — not just GitHub Copilot in VS Code.
+
+### Install
+
+```bash
+npx skills add Azure-Samples/azure-openai-to-responses
+```
+
+### Supported agents
+
+| Agent | Status |
+|---|---|
+| [GitHub Copilot](https://github.com/features/copilot) (VS Code) | ✅ Skill + custom agent |
+| [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) | ✅ |
+| [Cursor](https://cursor.com/) | ✅ |
+| [Gemini CLI](https://geminicli.com/) | ✅ |
+| [Amp](https://ampcode.com/) | ✅ |
+| [Goose](https://block.github.io/goose/) | ✅ |
+| [Junie](https://junie.jetbrains.com/) (JetBrains) | ✅ |
+| [Qodo](https://www.qodo.ai/) | ✅ |
+| [Letta](https://www.letta.com/) | ✅ |
+
+Once installed, the skill activates automatically when you ask any of these agents to migrate from Chat Completions to the Responses API. See the [Agent Skills spec](https://agentskills.io/specification) and [VS Code skill authoring docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills#_create-a-skill) for details.
 
 ---
 
