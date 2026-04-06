@@ -6,6 +6,14 @@ Migrate your Python apps from the **AzureOpenAI client with Chat Completions API
 
 > **⚠️ Before you start:** Check that your deployed model supports the Responses API — run `python migrate.py models --subscription YOUR_SUB_ID --location YOUR_REGION` or see the [model compatibility](#model-compatibility) section. Older models like `gpt-4o` support Responses but **not all features** (see [known limitations](#known-limitations-with-older-models)).
 
+### Install as an Agent Skill
+
+This skill follows the [Agent Skills](https://agentskills.io/) format and works across Claude Code, VS Code Copilot, Cursor, Gemini CLI, Amp, and other compatible agents:
+
+```bash
+npx skills add Azure-Samples/azure-openai-to-responses
+```
+
 ### What changes?
 
 | Before (Chat Completions) | After (Responses API) |
@@ -72,7 +80,7 @@ The agent will:
 4. **Verify** by re-running the scanner (zero hits) and your tests (`pytest`)
 5. **Report** a summary of everything changed and any manual follow-ups
 
-> **Prefer hands-on?** Skip the agent and follow [SKILL.md](.github/skills/azure-openai-to-responses/SKILL.md) step by step.  The [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md) has copy-paste code for every pattern.
+> **Prefer hands-on?** Skip the agent and follow [SKILL.md](skills/azure-openai-to-responses/SKILL.md) step by step.  The [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md) has copy-paste code for every pattern.
 
 ### Step 3 — Verify
 
@@ -126,8 +134,8 @@ This automatically:
 For each repo in the work directory, pick your method:
 
 - **Agent:** Open the repo in VS Code → `@azure-openai-to-responses migrate this app`
-- **Skill:** Feed [SKILL.md](.github/skills/azure-openai-to-responses/SKILL.md) to your LLM
-- **Manual:** Follow the skill step-by-step with the [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md)
+- **Skill:** Feed [SKILL.md](skills/azure-openai-to-responses/SKILL.md) to your LLM
+- **Manual:** Follow the skill step-by-step with the [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md)
 
 ### Step 3 — Review status
 
@@ -165,7 +173,7 @@ When prompted, you can choose:
 
 ## C. Skill-only (no agent)
 
-The migration knowledge lives in a self-contained [SKILL.md](.github/skills/azure-openai-to-responses/SKILL.md) that any LLM can follow — no VS Code agent required.
+The migration knowledge lives in a self-contained [SKILL.md](skills/azure-openai-to-responses/SKILL.md) that any LLM can follow — no VS Code agent required.
 
 ### With VS Code Copilot Chat
 
@@ -173,7 +181,7 @@ Add to your `.github/copilot-instructions.md`:
 
 ```markdown
 When asked to migrate from Chat Completions to Responses API, follow:
-.github/skills/azure-openai-to-responses/SKILL.md
+skills/azure-openai-to-responses/SKILL.md
 ```
 
 Then ask: *"Migrate this file from Chat Completions to Responses API."*
@@ -183,14 +191,14 @@ Then ask: *"Migrate this file from Chat Completions to Responses API."*
 Paste the skill file as context:
 
 ```bash
-cat .github/skills/azure-openai-to-responses/SKILL.md
+cat skills/azure-openai-to-responses/SKILL.md
 ```
 
 The skill includes:
 - Step-by-step migration instructions with parameter mapping tables
 - Client constructor patterns (sync, async, EntraID, API key, multi-tenant)
 - Acceptance criteria checklist (code, tests, behavioral gates)
-- Links to [cheat-sheet.md](.github/skills/azure-openai-to-responses/references/cheat-sheet.md) (all code snippets), [test-migration.md](.github/skills/azure-openai-to-responses/references/test-migration.md) (mock/snapshot rewrites), and [troubleshooting.md](.github/skills/azure-openai-to-responses/references/troubleshooting.md) (common errors + gotchas)
+- Links to [cheat-sheet.md](skills/azure-openai-to-responses/references/cheat-sheet.md) (all code snippets), [test-migration.md](skills/azure-openai-to-responses/references/test-migration.md) (mock/snapshot rewrites), and [troubleshooting.md](skills/azure-openai-to-responses/references/troubleshooting.md) (common errors + gotchas)
 
 ### Scanner standalone
 
@@ -200,7 +208,7 @@ The scanner works independently — no agent or LLM needed:
 python migrate.py scan /path/to/your-app
 
 # Or call the script directly
-python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py /path/to/your-app
+python skills/azure-openai-to-responses/scripts/detect_legacy.py /path/to/your-app
 ```
 
 ---
@@ -261,9 +269,9 @@ python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --json  #
 | Tool orchestration | GPT-5+ orchestrates tool calls as part of internal reasoning. Older models on Responses still work but lack this deep integration. |
 | Temperature constraints | When migrating to `gpt-5` or o-series, temperature must be omitted or set to `1`. |
 | `max_output_tokens` | Minimum is **16** on Azure OpenAI. Values below 16 return a 400 error. |
-| **O-series models** | `o1`, `o3-mini`, `o3`, `o4-mini` have specific constraints: `temperature` must be `1`, `top_p` not supported, `max_completion_tokens` must be migrated to `max_output_tokens` (set to 4096+), `reasoning_effort` migrates to `reasoning={"effort": "..."}`. See the [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md#o-series-reasoning-models-o1-o3-mini-o3-o4-mini). |
+| **O-series models** | `o1`, `o3-mini`, `o3`, `o4-mini` have specific constraints: `temperature` must be `1`, `top_p` not supported, `max_completion_tokens` must be migrated to `max_output_tokens` (set to 4096+), `reasoning_effort` migrates to `reasoning={"effort": "..."}`. See the [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md#o-series-reasoning-models-o1-o3-mini-o3-o4-mini). |
 | **GitHub Models** | `models.github.ai` and `models.inference.ai.azure.com` **do not support the Responses API**. Remove GitHub Models code paths during migration and switch to Azure OpenAI, OpenAI, or a compatible local endpoint. |
-| **Frameworks** | **Microsoft Agent Framework**: rename `OpenAIChatClient` → `OpenAIResponsesClient` (constructor args unchanged). **LangChain**: add `use_responses_api=True` to `ChatOpenAI()` and change `.content` → `.text` on response messages. See the [cheat sheet](.github/skills/azure-openai-to-responses/references/cheat-sheet.md#microsoft-agent-framework-maf-migration) for before/after examples. |
+| **Frameworks** | **Microsoft Agent Framework**: rename `OpenAIChatClient` → `OpenAIResponsesClient` (constructor args unchanged). **LangChain**: add `use_responses_api=True` to `ChatOpenAI()` and change `.content` → `.text` on response messages. See the [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md#microsoft-agent-framework-maf-migration) for before/after examples. |
 
 **Recommendation:** If staying on an older model (gpt-4o, gpt-4), the migration to Responses API works for core functionality. For full benefit (especially tool orchestration and reasoning), upgrade to gpt-5.1 or gpt-5.2 — both have broad cross-region availability.
 
@@ -316,17 +324,17 @@ azure-openai-to-responses/
 ├── pyproject.toml                          # Package metadata & dependencies
 ├── README.md
 ├── .github/
-│   ├── agents/
-│   │   └── azure-openai-to-responses.agent.md  # Copilot agent (orchestrator)
-│   └── skills/
-│       └── azure-openai-to-responses/
-│           ├── SKILL.md                    # Core migration knowledge
-│           ├── references/
-│           │   ├── cheat-sheet.md          # All code snippets & patterns
-│           │   ├── test-migration.md       # Mock, snapshot & assertion updates
-│           │   └── troubleshooting.md      # Errors, risk table, gotchas
-│           └── scripts/
-│               └── detect_legacy.py        # Pattern scanner
+│   └── agents/
+│       └── azure-openai-to-responses.agent.md  # Copilot agent (orchestrator)
+├── skills/
+│   └── azure-openai-to-responses/           # Agent Skills-compatible skill
+│       ├── SKILL.md                        # Core migration knowledge
+│       ├── references/
+│       │   ├── cheat-sheet.md              # All code snippets & patterns
+│       │   ├── test-migration.md           # Mock, snapshot & assertion updates
+│       │   └── troubleshooting.md          # Errors, risk table, gotchas
+│       └── scripts/
+│           └── detect_legacy.py            # Pattern scanner
 ├── tools/
 │   ├── bulk_migrate.py                     # Bulk workflow: clone, track, send PRs
 │   ├── find_legacy_openai_repos.py         # GitHub org search (uses gh CLI)

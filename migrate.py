@@ -160,7 +160,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 ║  ─────────────────────────────────                               ║
 ║  1. Scan:    python migrate.py scan /path/to/your-app            ║
 ║  2. Migrate: @azure-openai-to-responses migrate /path/...        ║
-║     Or follow .github/skills/azure-openai-to-responses/SKILL.md ║
+║     Or follow skills/azure-openai-to-responses/SKILL.md         ║
 ║  3. Verify:  python migrate.py scan /path/to/your-app            ║
 ║              cd /path/to/your-app && pytest                      ║
 ║                                                                  ║
@@ -173,7 +173,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 ║                                                                  ║
 ║  APPROACH C: Skill-only (no agent)                               ║
 ║  ─────────────────────────────────                               ║
-║  Feed .github/skills/azure-openai-to-responses/SKILL.md to      ║
+║  Feed skills/azure-openai-to-responses/SKILL.md to              ║
 ║  any LLM (Copilot, Claude, ChatGPT) as context, then ask it     ║
 ║  to migrate your code.                                           ║
 ║                                                                  ║
