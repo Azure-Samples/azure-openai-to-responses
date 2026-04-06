@@ -359,7 +359,7 @@ message = response.json()["choices"][0]["message"]["content"]
 
 After (Responses API):
 ```python
-endpoint = f"{azure_endpoint}openai/v1/responses"
+endpoint = f"{azure_endpoint}/openai/v1/responses"
 data = {
     "model": deployment,
     "input": [{"role": "user", "content": query}],
@@ -368,8 +368,10 @@ data = {
     "store": False,
 }
 response = requests.post(endpoint, headers=headers, json=data)
-output_text = response.json()["output_text"]
+output_text = response.json()["output"][0]["content"][0]["text"]
 ```
+
+> **Note**: `output_text` is a convenience property on the Python SDK's `Response` object. The raw REST JSON response does not have a top-level `output_text` field — the text is at `output[0].content[0].text`.
 
 ## Multi-turn conversation
 ```python
