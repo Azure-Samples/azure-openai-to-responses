@@ -293,6 +293,86 @@ response = client.responses.create(
 print(response.output_text)
 ```
 
+## Content filter error handling
+
+The error body structure changed from Chat Completions to Responses API.
+
+Before (Chat Completions):
+```python
+except openai.APIError as error:
+    if error.code == "content_filter":
+        if error.body["innererror"]["content_filter_result"]["jailbreak"]["filtered"] is True:
+            print("Jailbreak detected!")
+```
+
+After (Responses API):
+```python
+except openai.APIError as error:
+    if error.code == "content_filter":
+        if error.body["content_filters"][0]["content_filter_results"]["jailbreak"]["filtered"] is True:
+            print("Jailbreak detected!")
+```
+
+Key differences:
+- `innererror` wrapper is **gone** — content filter details are now at the top level of `error.body`.
+- `content_filter_result` (singular) → `content_filters` (plural array) containing `content_filter_results` (plural) inside each entry.
+- Each entry in `content_filters` includes `blocked`, `source_type`, and `content_filter_results` with per-category details (`jailbreak`, `hate`, `sexual`, `violence`, `self_harm`).
+
+Full Responses API content filter error body shape:
+```json
+{
+  "message": "The response was filtered...",
+  "type": "invalid_request_error",
+  "param": "prompt",
+  "code": "content_filter",
+  "content_filters": [
+    {
+      "blocked": true,
+      "source_type": "prompt",
+      "content_filter_results": {
+        "jailbreak": { "detected": true, "filtered": true },
+        "hate": { "filtered": false, "severity": "safe" },
+        "sexual": { "filtered": false, "severity": "safe" },
+        "violence": { "filtered": false, "severity": "safe" },
+        "self_harm": { "filtered": false, "severity": "safe" }
+      }
+    }
+  ]
+}
+```
+
+## Raw HTTP migration (requests/httpx)
+
+If the app calls Azure OpenAI REST directly instead of using the SDK:
+
+Before (Chat Completions):
+```python
+endpoint = f"{azure_endpoint}/openai/deployments/{deployment}/chat/completions?api-version=2024-03-01-preview"
+data = {
+    "messages": [{"role": "user", "content": query}],
+    "model": model_name,
+    "temperature": 0,
+}
+response = requests.post(endpoint, headers=headers, json=data)
+message = response.json()["choices"][0]["message"]["content"]
+```
+
+After (Responses API):
+```python
+endpoint = f"{azure_endpoint}/openai/v1/responses"
+data = {
+    "model": deployment,
+    "input": [{"role": "user", "content": query}],
+    "temperature": 0,
+    "max_output_tokens": 1000,
+    "store": False,
+}
+response = requests.post(endpoint, headers=headers, json=data)
+output_text = response.json()["output"][0]["content"][0]["text"]
+```
+
+> **Note**: `output_text` is a convenience property on the Python SDK's `Response` object. The raw REST JSON response does not have a top-level `output_text` field — the text is at `output[0].content[0].text`.
+
 ## Multi-turn conversation
 ```python
 # Build a conversation with Responses API

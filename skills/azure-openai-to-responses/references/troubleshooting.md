@@ -16,6 +16,7 @@
 | `Expected object, got string` on `image_url` | `image_url` is still a nested object `{"url": "..."}` | Flatten to a plain string: `"image_url": "https://..."` or `"image_url": "data:image/...;base64,..."` |
 | `integer below minimum value` for `max_output_tokens` | Minimum is **16** on Azure OpenAI. Use 50+ for tests, 1000+ for production. |
 | `429 Too Many Requests` during streaming | Rate limited. Wrap streaming in `try/except`, yield error JSON to frontend, implement backoff/retry. |
+| `KeyError: 'innererror'` on content filter error | Content filter error body structure changed in Responses API | Chat Completions used `error.body["innererror"]["content_filter_result"]`; Responses API uses `error.body["content_filters"][0]["content_filter_results"]` (plural, inside an array). Rewrite all `innererror` access. |
 
 ---
 
@@ -42,6 +43,8 @@
 | `404 Not Found` using GitHub Models (`models.github.ai`) | GitHub Models does not support Responses API | Remove the GitHub Models code path entirely. Use Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support). |
 | MAF `OpenAIChatCompletionClient` still using Chat Completions | Using legacy MAF client in 1.0.0+ | In MAF 1.0.0+, `OpenAIChatClient` uses Responses API by default. Replace `OpenAIChatCompletionClient` with `OpenAIChatClient`. For pre-1.0.0, upgrade to `agent-framework-openai>=1.0.0`. |
 | LangChain agent returns empty or fails with tool calls | `ChatOpenAI` not using Responses API | Add `use_responses_api=True` to `ChatOpenAI(...)`. Also change `.content` → `.text` on response messages. |
+| `KeyError: 'innererror'` in content filter error handler | Error body structure changed in Responses API | Rewrite `error.body["innererror"]["content_filter_result"]["jailbreak"]` → `error.body["content_filters"][0]["content_filter_results"]["jailbreak"]`. The `innererror` wrapper is gone; content filter details are now in a top-level `content_filters` array with `content_filter_results` (plural) inside each entry. |
+| Raw HTTP call to `/openai/deployments/.../chat/completions` returns 404 | Old Chat Completions REST endpoint | Rewrite URL to `/openai/v1/responses`. Change request body: `messages` → `input`, add `max_output_tokens` + `store: false`, remove `api-version` query param. Change response parsing: `choices[0].message.content` → `output[0].content[0].text` (note: `output_text` is an SDK convenience property, not in the raw REST JSON). |
 
 ---
 
@@ -73,3 +76,5 @@
 21. **`strict: true` requires `required` + `additionalProperties: false`**: When using `strict: true` on a tool, every property must be listed in the `required` array and `additionalProperties` must be `false`. Missing either causes a 400 error.
 22. **Function call IDs have specific prefixes**: When providing few-shot `function_call` items in `input`, the `id` field must start with `fc_` and the `call_id` field must start with `call_` (e.g., `"id": "fc_example1", "call_id": "call_example1"`). Using the old Chat Completions `call_` prefix for `id` is rejected.
 23. **GitHub Models does not support Responses API**: If the app has a GitHub Models code path (`base_url` pointing to `models.github.ai` or `models.inference.ai.azure.com`), remove it entirely. There is no migration path — switch to Azure OpenAI, OpenAI, or a compatible local endpoint.
+24. **Content filter error body structure changed**: Chat Completions errors used `error.body["innererror"]["content_filter_result"]` (singular). Responses API errors use `error.body["content_filters"][0]["content_filter_results"]` (plural, inside an array). The `innererror` key no longer exists. Code that directly accesses `innererror` will raise `KeyError` at runtime — this is easy to miss in migration since it only surfaces when the content filter actually triggers. Always grep for `innererror` during migration.
+25. **Raw HTTP calls need URL + body rewrite**: Apps calling Azure OpenAI REST directly (via `requests`, `httpx`, `aiohttp`) using `/openai/deployments/{name}/chat/completions?api-version=...` must switch to `/openai/v1/responses`. The request body uses `input` instead of `messages`, requires `max_output_tokens` and `store`, and the `api-version` query param is dropped. The response body text is at `output[0].content[0].text` — **not** `output_text`, which is an SDK convenience property not present in the raw REST JSON.
