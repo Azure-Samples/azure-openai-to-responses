@@ -417,9 +417,137 @@ print(data["answer"])
 
 ## Tool use
 
-- Define functions in `tools` with JSON Schema params; let the model decide with `tool_choice="auto"` or force a specific tool.
-- When the model asks to call a tool, execute it in your app and include the tool result in the next request as a `tool` role item within `input`.
+- Define functions in `tools` with the **flat Responses API format** — `name`, `description`, and `parameters` at the top level (not nested under `function`).
+- When the model asks to call a tool, execute it in your app and include the tool result in the next request as a `function_call_output` item within `input`.
 - Keep schemas minimal; validate inputs before execution.
+- When using `strict: true`, all properties must be listed in `required` and `additionalProperties: false` is mandatory.
+
+> **⚠️ `pydantic_function_tool()` is incompatible**: The `openai.pydantic_function_tool()` helper still generates the old Chat Completions nested format (`{"type": "function", "function": {"name": ...}}`). Do not use it with `responses.create()`. Define tool schemas manually or write a wrapper to flatten the output.
+
+### Tool definition format
+
+The Responses API uses a **flat** tool format — `name`, `description`, `parameters` are top-level keys (not nested under `function`).
+
+**Before (Chat Completions — nested):**
+```python
+tools = [{"type": "function", "function": {"name": "lookup_weather", "parameters": {...}}}]
+```
+
+**After (Responses API — flat):**
+```python
+tools = [{"type": "function", "name": "lookup_weather", "parameters": {...}}]
+```
+
+Full example:
+```python
+tools = [
+    {
+        "type": "function",
+        "name": "lookup_weather",
+        "description": "Lookup the weather for a given city name.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city_name": {"type": "string", "description": "The city name"},
+            },
+            "required": ["city_name"],
+            "additionalProperties": False,
+        },
+    }
+]
+
+response = client.responses.create(
+    model=deployment,
+    input=[
+        {"role": "system", "content": "You are a weather chatbot."},
+        {"role": "user", "content": "What's the weather in Berkeley?"},
+    ],
+    tools=tools,
+    tool_choice="auto",
+    store=False,
+)
+```
+
+With `strict: true` (schema enforcement):
+```python
+tools = [
+    {
+        "type": "function",
+        "name": "lookup_weather",
+        "description": "Lookup the weather for a given city name.",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city_name": {"type": "string", "description": "The city name"},
+            },
+            "required": ["city_name"],       # All properties MUST be listed
+            "additionalProperties": False,   # Required for strict mode
+        },
+    }
+]
+```
+
+### Tool call round-trip (execute and return results)
+
+When the model requests a tool call, use `response.output` items + `function_call_output` — **not** the Chat Completions `role: assistant` + `role: tool` pattern.
+
+```python
+import json
+
+messages = [
+    {"role": "system", "content": "You are a weather chatbot."},
+    {"role": "user", "content": "Is it sunny in Berkeley?"},
+]
+
+response = client.responses.create(
+    model=deployment, input=messages, tools=tools, store=False,
+)
+
+tool_calls = [item for item in response.output if item.type == "function_call"]
+if tool_calls:
+    # Add the model's function_call items to conversation
+    messages.extend(response.output)
+
+    # Execute each tool and add results
+    for tc in tool_calls:
+        result = execute_tool(tc.name, json.loads(tc.arguments))
+        messages.append({
+            "type": "function_call_output",
+            "call_id": tc.call_id,
+            "output": json.dumps(result),
+        })
+
+    # Get final response with tool results
+    response = client.responses.create(
+        model=deployment, input=messages, tools=tools, store=False,
+    )
+    print(response.output_text)
+```
+
+### Few-shot tool call examples
+
+When providing few-shot examples of tool calls in `input`, use `function_call` and `function_call_output` items. IDs must start with `fc_`.
+
+```python
+messages = [
+    {"role": "system", "content": "You are a product search assistant."},
+    {"role": "user", "content": "Find climbing gear for outdoors"},
+    {
+        "type": "function_call",
+        "id": "fc_example1",
+        "call_id": "call_example1",
+        "name": "search_database",
+        "arguments": '{"search_query": "climbing gear outdoor"}',
+    },
+    {
+        "type": "function_call_output",
+        "call_id": "call_example1",
+        "output": "Results: ...",
+    },
+    {"role": "user", "content": "Now find shoes under $50"},
+]
+```
 
 ```python
 # Built-in web search example
