@@ -19,15 +19,51 @@ Migrate your Python apps from the **AzureOpenAI client with Chat Completions API
 
 ---
 
-## Agent Skills compatibility
+## Get started
 
-This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent — not just GitHub Copilot in VS Code.
-
-### Install
+### 1. Install the skill
 
 ```bash
 npx skills add Azure-Samples/azure-openai-to-responses
 ```
+
+### 2. Ask your agent to migrate
+
+In any [compatible agent](#agent-skills-compatibility) (VS Code Copilot, Claude Code, Cursor, Gemini CLI, etc.):
+
+> *Migrate my app from Chat Completions to the Responses API*
+
+The skill activates automatically. The agent will scan your code, plan the edits, migrate each file, and verify with the scanner and your tests.
+
+### 3. Verify
+
+The agent runs verification automatically, but you can double-check:
+
+```bash
+# Scanner should report zero hits
+python migrate.py scan /path/to/your-app
+
+# Run your repo's own tests
+cd /path/to/your-app && pytest
+```
+
+### Demo: what a migrated app looks like
+
+The [`demo/openai-chat-app-quickstart/`](demo/openai-chat-app-quickstart/) directory is a fully migrated [Azure Samples chat app](https://github.com/Azure-Samples/openai-chat-app-quickstart) — a real Quart (async Flask) app.
+
+| File | What changed |
+|---|---|
+| `src/quartapp/chat.py` | `AsyncAzureOpenAI` → `AsyncOpenAI`, `chat.completions.create` → `responses.create`, streaming rewritten |
+| `tests/conftest.py` | `ChatCompletionChunk` mocks → `MockResponseEvent` / `AsyncResponseIterator` |
+| `tests/test_app.py` | Assertions updated to `isinstance(client, AsyncOpenAI)` |
+| `tests/snapshots/` | `choices[0].delta.content` → `{"delta": {"content": "..."}}` |
+| `infra/*.bicep`, `.env.sample` | Removed `AZURE_OPENAI_API_VERSION` / `openAiApiVersion`; added `AZURE_CLIENT_ID` |
+
+---
+
+## Agent Skills compatibility
+
+This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent — not just GitHub Copilot in VS Code.
 
 ### Supported agents
 
@@ -43,19 +79,16 @@ npx skills add Azure-Samples/azure-openai-to-responses
 | [Qodo](https://www.qodo.ai/) | ✅ |
 | [Letta](https://www.letta.com/) | ✅ |
 
-Once installed, the skill activates automatically when you ask any of these agents to migrate from Chat Completions to the Responses API. See the [Agent Skills spec](https://agentskills.io/specification) and [VS Code skill authoring docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills#_create-a-skill) for details.
+See the [Agent Skills spec](https://agentskills.io/specification) and [VS Code skill authoring docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills#_create-a-skill) for details.
 
 ---
 
-## Choose your approach
+<details>
+<summary><strong>Advanced: manual migration, bulk workflows, and standalone tooling</strong></summary>
 
-| Approach | Best for | Time |
-|---|---|---|
-| **[A. Single-repo migration](#a-single-repo-migration)** | One app, hands-on walkthrough | ~30 min per app |
-| **[B. Bulk migration across repos](#b-bulk-migration-across-repos)** | Org-wide rollout, multiple repos | Hours (scripted) |
-| **[C. Skill-only (no agent)](#c-skill-only-no-agent)** | Any LLM, manual, or custom workflow | Varies |
+For air-gapped environments, custom LLM pipelines, org-wide rollouts, or when you want full manual control.
 
-### Setup (all approaches)
+### Setup
 
 ```bash
 git clone https://github.com/YOUR_ORG/azure-openai-to-responses.git
@@ -63,13 +96,9 @@ cd azure-openai-to-responses
 pip install -e ".[dev]"
 ```
 
----
+### Single-repo migration (manual)
 
-## A. Single-repo migration
-
-Migrate one app end-to-end — the same workflow used to migrate the included [demo app](demo/openai-chat-app-quickstart/).
-
-### Step 1 — Scan for legacy patterns
+#### Step 1 — Scan for legacy patterns
 
 ```bash
 python migrate.py scan /path/to/your-app
@@ -77,150 +106,42 @@ python migrate.py scan /path/to/your-app
 
 The scanner finds every call site that needs to change, grouped by category: client constructors, API calls, response shapes, parameters, env vars, and test infrastructure.
 
-### Step 2 — Let the agent migrate it
+#### Step 2 — Migrate with an agent or manually
 
-Open your app in VS Code as a **multi-root workspace** with both this repo and your app:
-
-1. Open your app folder in VS Code (`File > Open Folder`)
-2. Add this repo: `File > Add Folder to Workspace...` → select the cloned `azure-openai-to-responses` folder
-3. VS Code switches to an "Untitled (Workspace)" with both folders in the sidebar
-
-> **Why multi-root?** VS Code scopes Copilot's file access to workspace folders. Without this, the agent will prompt for permission every time it tries to read or edit files in your app. Adding both folders to the same workspace avoids those prompts.
->
-> **Tip:** Save it for reuse with `File > Save Workspace As...` (creates a `.code-workspace` file you can double-click next time).
-
-In Copilot Chat:
+**With VS Code Copilot agent:** Open your app as a [multi-root workspace](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with this repo, then:
 
 ```
 @azure-openai-to-responses migrate the app at /path/to/your-app
 ```
 
-The agent will:
-1. **Scan** your code and show what needs to change
-2. **Plan** the edit order — constructors first, then API calls, response shapes, tests, cleanup
-3. **Migrate** each file with precise, reviewable edits
-4. **Verify** by re-running the scanner (zero hits) and your tests (`pytest`)
-5. **Report** a summary of everything changed and any manual follow-ups
+**With any LLM:** Feed [SKILL.md](skills/azure-openai-to-responses/SKILL.md) as context and ask it to migrate your code. The [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md) has copy-paste code for every pattern.
 
-> **Prefer hands-on?** Skip the agent and follow [SKILL.md](skills/azure-openai-to-responses/SKILL.md) step by step.  The [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md) has copy-paste code for every pattern.
+**Fully manual:** Follow [SKILL.md](skills/azure-openai-to-responses/SKILL.md) step by step using the [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md), [test migration guide](skills/azure-openai-to-responses/references/test-migration.md), and [troubleshooting guide](skills/azure-openai-to-responses/references/troubleshooting.md).
 
-### Step 3 — Verify
+#### Step 3 — Verify
 
 ```bash
-# Scanner should report zero hits
-python migrate.py scan /path/to/your-app
-
-# Run your repo's own tests
-cd /path/to/your-app && pytest
+python migrate.py scan /path/to/your-app   # zero hits
+cd /path/to/your-app && pytest              # all tests pass
 ```
 
-Verification will vary by repo — run whatever unit/integration tests the project already has. If the app has a UI or API endpoint, do a quick manual test too (start the server, send a request, confirm streaming works).
+### Bulk migration across repos
 
-### Demo: what a migrated app looks like
-
-The [`demo/openai-chat-app-quickstart/`](demo/openai-chat-app-quickstart/) directory is a fully migrated [Azure Samples chat app](https://github.com/Azure-Samples/openai-chat-app-quickstart) — a real Quart (async Flask) app.
-
-| File | What changed |
-|---|---|
-| `src/quartapp/chat.py` | `AsyncAzureOpenAI` → `AsyncOpenAI`, `chat.completions.create` → `responses.create`, streaming rewritten |
-| `tests/conftest.py` | `ChatCompletionChunk` mocks → `MockResponseEvent` / `AsyncResponseIterator` |
-| `tests/test_app.py` | Assertions updated to `isinstance(client, AsyncOpenAI)` |
-| `tests/snapshots/` | `choices[0].delta.content` → `{"delta": {"content": "..."}}` |
-| `infra/*.bicep`, `.env.sample` | Removed `AZURE_OPENAI_API_VERSION` / `openAiApiVersion`; added `AZURE_CLIENT_ID` |
-
-**Result:** 4 pytest tests pass (99% coverage), live streaming works end-to-end, scanner reports zero legacy hits.
-
----
-
-## B. Bulk migration across repos
-
-Roll out the migration across your entire GitHub org with a single workflow that discovers, clones, tracks, and sends PRs.
-
-Requires the [`gh` CLI](https://cli.github.com/), authenticated (`gh auth login`).
-
-### Step 1 — Prepare (discover + clone + scan)
+Roll out the migration across your entire GitHub org with a single workflow that discovers, clones, tracks, and sends PRs. Requires the [`gh` CLI](https://cli.github.com/).
 
 ```bash
+# Discover + clone + scan
 python migrate.py bulk prepare --org YOUR_ORG
-python migrate.py bulk prepare --org YOUR_ORG --language python --workdir ./migrations
-```
 
-This automatically:
-- Searches your org for repos with legacy Chat Completions patterns
-- Clones each repo into the work directory
-- Creates a `azure-openai-to-responses-api` branch in each
-- Runs the scanner and produces a consolidated report
+# Migrate each repo (agent, LLM, or manual)
+# ...
 
-### Step 2 — Migrate each repo
-
-For each repo in the work directory, pick your method:
-
-- **Agent:** Open the repo in VS Code → `@azure-openai-to-responses migrate this app`
-- **Skill:** Feed [SKILL.md](skills/azure-openai-to-responses/SKILL.md) to your LLM
-- **Manual:** Follow the skill step-by-step with the [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md)
-
-### Step 3 — Review status
-
-```bash
+# Review status
 python migrate.py bulk status --workdir ./migrations
-```
 
-Produces a report showing every repo with:
-- Migration status (scanned / in-progress / ready / PR sent)
-- Files changed in each repo
-- Whether the scanner still finds legacy hits
-
-### Step 4 — Send PRs (all at once, selectively, or one-by-one)
-
-```bash
-# Send PRs for all repos that are ready (interactive prompt)
+# Send PRs (interactive: all / selective / one-by-one)
 python migrate.py bulk send-prs --workdir ./migrations
-
-# Send PRs for specific repos only
-python migrate.py bulk send-prs --workdir ./migrations --repos repo1,repo2
-
-# Send PRs for all except some
-python migrate.py bulk send-prs --workdir ./migrations --exclude repo3,repo4
-
-# Skip confirmation
-python migrate.py bulk send-prs --workdir ./migrations --yes
 ```
-
-When prompted, you can choose:
-- **`y`** — send all PRs
-- **`one-by-one`** — review and approve each repo individually
-- **`N`** — abort
-
----
-
-## C. Skill-only (no agent)
-
-The migration knowledge lives in a self-contained [SKILL.md](skills/azure-openai-to-responses/SKILL.md) that any LLM can follow — no VS Code agent required.
-
-### With VS Code Copilot Chat
-
-Add to your `.github/copilot-instructions.md`:
-
-```markdown
-When asked to migrate from Chat Completions to Responses API, follow:
-skills/azure-openai-to-responses/SKILL.md
-```
-
-Then ask: *"Migrate this file from Chat Completions to Responses API."*
-
-### With Claude, ChatGPT, or any LLM
-
-Paste the skill file as context:
-
-```bash
-cat skills/azure-openai-to-responses/SKILL.md
-```
-
-The skill includes:
-- Step-by-step migration instructions with parameter mapping tables
-- Client constructor patterns (sync, async, EntraID, API key, multi-tenant)
-- Acceptance criteria checklist (code, tests, behavioral gates)
-- Links to [cheat-sheet.md](skills/azure-openai-to-responses/references/cheat-sheet.md) (all code snippets), [test-migration.md](skills/azure-openai-to-responses/references/test-migration.md) (mock/snapshot rewrites), and [troubleshooting.md](skills/azure-openai-to-responses/references/troubleshooting.md) (common errors + gotchas)
 
 ### Scanner standalone
 
@@ -228,10 +149,10 @@ The scanner works independently — no agent or LLM needed:
 
 ```bash
 python migrate.py scan /path/to/your-app
-
-# Or call the script directly
 python skills/azure-openai-to-responses/scripts/detect_legacy.py /path/to/your-app
 ```
+
+</details>
 
 ---
 
