@@ -4,7 +4,7 @@ Migrate your Python apps from the **AzureOpenAI client with Chat Completions API
 
 > **GPT-5 and newer models require the Responses API.** Migrating now future-proofs your apps and unlocks deep tool integration, structured output, and a stable `/openai/v1/` endpoint with no `api_version` management.
 
-This skill follows the open [Agent Skills](https://agentskills.io/) format — install it in one command and use it from [GitHub Copilot](https://github.com/features/copilot), [Claude Code](https://claude.ai/code), [OpenAI Codex](https://developers.openai.com/codex), [Cursor](https://cursor.com/), [Gemini CLI](https://geminicli.com/), [Amp](https://ampcode.com/), and [many more](#agent-skills-compatibility).
+This skill follows the open [Agent Skills](https://agentskills.io/) format — install it in one command and use it from [GitHub Copilot](https://github.com/features/copilot), [OpenAI Codex](https://developers.openai.com/codex), [Claude Code](https://claude.ai/code), and [many more](#agent-skills-compatibility).
 
 ### What changes?
 
@@ -61,14 +61,15 @@ The [`demo/openai-chat-app-quickstart/`](demo/openai-chat-app-quickstart/) direc
 
 ## Agent Skills compatibility
 
-This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent — not just GitHub Copilot in VS Code.
+This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent.
 
 ### Supported agents
 
 | Agent | Status |
 |---|---|
-| [GitHub Copilot](https://github.com/features/copilot) (VS Code) | ✅ Skill + custom agent |
-| [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) | ✅ |
+| [GitHub Copilot](https://github.com/features/copilot) | ✅ Skill + custom agent |
+| [OpenAI Codex](https://developers.openai.com/codex) | ✅ |
+| [Claude Code](https://claude.ai/code) | ✅ |
 | [Cursor](https://cursor.com/) | ✅ |
 | [Gemini CLI](https://geminicli.com/) | ✅ |
 | [Amp](https://ampcode.com/) | ✅ |
@@ -76,7 +77,6 @@ This skill follows the open [Agent Skills](https://agentskills.io/) format. Inst
 | [Junie](https://junie.jetbrains.com/) (JetBrains) | ✅ |
 | [Qodo](https://www.qodo.ai/) | ✅ |
 | [Letta](https://www.letta.com/) | ✅ |
-| [OpenAI Codex](https://developers.openai.com/codex) | ✅ |
 
 See the [Agent Skills spec](https://agentskills.io/specification) and [VS Code skill authoring docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills#_create-a-skill) for details.
 
