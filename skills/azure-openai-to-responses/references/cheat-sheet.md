@@ -561,18 +561,83 @@ print(resp.output_text)
 ```
 
 ## Image input
+
+Image content items change type from `image_url` to `input_image`, and the URL changes from a nested object to a flat string.
+
+### Image input — before (Chat Completions)
+```python
+resp = client.chat.completions.create(
+    model=deployment,
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "What's in this image?"},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "https://example.com/image.jpg"},
+                },
+            ],
+        }
+    ],
+    max_tokens=500,
+)
+print(resp.choices[0].message.content)
+```
+
+### Image input — after (Responses API, URL)
 ```python
 resp = client.responses.create(
     model=deployment,
     input=[
-        {"role": "user", "content": "What two teams are playing?"},
-        {"role": "user", "content": [{"type": "input_image", "image_url": "https://example.com/image.jpg"}]},
+        {
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": "What's in this image?"},
+                {
+                    "type": "input_image",
+                    "image_url": "https://example.com/image.jpg",
+                },
+            ],
+        }
     ],
     max_output_tokens=500,
     store=False,
 )
 print(resp.output_text)
 ```
+
+### Image input — after (Responses API, base64)
+```python
+import base64
+
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+base64_image = encode_image("path_to_your_image.jpg")
+
+resp = client.responses.create(
+    model=deployment,
+    input=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": "What's in this image?"},
+                {
+                    "type": "input_image",
+                    "image_url": f"data:image/jpeg;base64,{base64_image}",
+                },
+            ],
+        }
+    ],
+    max_output_tokens=500,
+    store=False,
+)
+print(resp.output_text)
+```
+
+> **Key changes**: (1) `"type": "image_url"` → `"type": "input_image"`, (2) `"image_url": {"url": "..."}` (nested object) → `"image_url": "..."` (flat string — either HTTPS URL or `data:image/...;base64,...` data URI), (3) `"type": "text"` → `"type": "input_text"`.
 
 ## Microsoft Agent Framework (MAF) migration
 
