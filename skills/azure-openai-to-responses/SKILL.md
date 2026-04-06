@@ -313,6 +313,7 @@ rg "choices\[0\]" tests/
 - **Multi-turn**: maintain conversation history in the app; pass prior turns via `input` items.
 - **Formatting**: replace Chat's top-level `response_format` with `text.format` in Responses. Canonical shape: `text={"format": {"type": "json_schema", "name": "Output", "strict": True, "schema": {...}}}`.
 - **Content items**: replace Chat `content[].type: "text"` with Responses `content[].type: "input_text"` for user/system turns.
+- **Image content items**: replace Chat `content[].type: "image_url"` with Responses `content[].type: "input_image"`. The `image_url` field changes from a nested object `{"url": "..."}` to a flat string. See the cheat sheet for before/after examples.
 - **Reasoning effort**: **only migrate `reasoning` if it already exists in the original code**.
 
 ---
@@ -326,6 +327,7 @@ rg "choices\[0\]" tests/
 - **Fields**: `messages` → `input`, `max_tokens` → `max_output_tokens`. `temperature` remains.
 - **Formatting**: `response_format` → `text.format` with a proper object.
 - **Content items**: Replace Chat `content[].type: "text"` with Responses `content[].type: "input_text"` for system/user turns.
+- **Image content items**: Replace Chat `content[].type: "image_url"` with Responses `content[].type: "input_image"`. Flatten the `image_url` field from `{"image_url": {"url": "..."}}` to `{"image_url": "..."}` (a plain string — either an HTTPS URL or a `data:image/...;base64,...` data URI).
 
 ### Parameter mapping reference
 
@@ -342,6 +344,9 @@ rg "choices\[0\]" tests/
 | `tools` / function-calling | `tools` (unchanged) |
 | `seed` | **Remove** (not supported) |
 | `store` | `store` (set to `false`) |
+| `content[].type: "text"` | `content[].type: "input_text"` |
+| `content[].type: "image_url"` | `content[].type: "input_image"` |
+| `"image_url": {"url": "..."}` | `"image_url": "..."` (flat string) |
 
 For complete before/after code examples, see [cheat-sheet.md](./references/cheat-sheet.md).
 

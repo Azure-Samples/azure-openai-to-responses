@@ -12,6 +12,8 @@
 | `missing_required_parameter: text.format.name` | Add `"name"` key to the format dict (e.g., `"name": "Output"`) |
 | `invalid_type: text.format` | Ensure `text.format` is a dict with `type`, `name`, `strict`, `schema` keys — not a string |
 | `invalid input content type` | Use `input_text`/`output_text` content types instead of Chat `text` |
+| `invalid input content type` (image) | Image content still uses `"type": "image_url"` | Change to `"type": "input_image"` |
+| `Expected object, got string` on `image_url` | `image_url` is still a nested object `{"url": "..."}` | Flatten to a plain string: `"image_url": "https://..."` or `"image_url": "data:image/...;base64,..."` |
 | `integer below minimum value` for `max_output_tokens` | Minimum is **16** on Azure OpenAI. Use 50+ for tests, 1000+ for production. |
 | `429 Too Many Requests` during streaming | Rate limited. Wrap streaming in `try/except`, yield error JSON to frontend, implement backoff/retry. |
 
@@ -28,6 +30,7 @@
 | Model returns `deployment not found` | `model` param doesn't match your Azure deployment name | Use `model=os.environ["AZURE_OPENAI_DEPLOYMENT"]` — this is the deployment name, not the model name |
 | `json.loads(resp.output_text)` raises `JSONDecodeError` | Schema not enforced or model doesn't support strict JSON | Ensure `"strict": True` in schema, and verify model supports structured output |
 | Streaming yields no `delta` events | Checking wrong event type | Filter on `event.type == "response.output_text.delta"`, not Chat's `chat.completion.chunk` |
+| `400` error on image input after migration | Image content type not updated | Change `"type": "image_url"` → `"type": "input_image"` and flatten `"image_url": {"url": "..."}` → `"image_url": "..."` (plain string) |
 | Tool calls loop infinitely | Missing tool result in follow-up `input` | After executing a tool, append a `{"type": "function_call_output", "call_id": ..., "output": ...}` item to `input` in the next request |
 | `temperature` error with GPT-5 or o-series | Explicit `temperature` value other than 1 | Remove `temperature` or set to `1` for GPT-5 and o-series models (o1, o3-mini, o3, o4-mini) |
 | `top_p` error with o-series | `top_p` not supported | Remove `top_p` when targeting o-series models |
