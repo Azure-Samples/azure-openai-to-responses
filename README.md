@@ -4,9 +4,7 @@ Migrate your Python apps from the **AzureOpenAI client with Chat Completions API
 
 > **GPT-5 and newer models require the Responses API.** Migrating now future-proofs your apps and unlocks deep tool integration, structured output, and a stable `/openai/v1/` endpoint with no `api_version` management.
 
-> **⚠️ Before you start:** Check that your deployed model supports the Responses API — run `python migrate.py models --subscription YOUR_SUB_ID --location YOUR_REGION` or see the [model compatibility](#model-compatibility) section. Older models like `gpt-4o` support Responses but **not all features** (see [known limitations](#known-limitations-with-older-models)).
-
-> **New:** This skill follows the open [Agent Skills](https://agentskills.io/) format — install it in one command and use it from [many agents beyond VS Code](#agent-skills-compatibility).
+This skill follows the open [Agent Skills](https://agentskills.io/) format — install it in one command and use it from [GitHub Copilot](https://github.com/features/copilot), [OpenAI Codex](https://developers.openai.com/codex), [Claude Code](https://claude.ai/code), and [many more](#agent-skills-compatibility).
 
 ### What changes?
 
@@ -63,14 +61,15 @@ The [`demo/openai-chat-app-quickstart/`](demo/openai-chat-app-quickstart/) direc
 
 ## Agent Skills compatibility
 
-This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent — not just GitHub Copilot in VS Code.
+This skill follows the open [Agent Skills](https://agentskills.io/) format. Install it once and use it from any compatible AI coding agent.
 
 ### Supported agents
 
 | Agent | Status |
 |---|---|
-| [GitHub Copilot](https://github.com/features/copilot) (VS Code) | ✅ Skill + custom agent |
-| [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) | ✅ |
+| [GitHub Copilot](https://github.com/features/copilot) | ✅ Skill + custom agent |
+| [OpenAI Codex](https://developers.openai.com/codex) | ✅ |
+| [Claude Code](https://claude.ai/code) | ✅ |
 | [Cursor](https://cursor.com/) | ✅ |
 | [Gemini CLI](https://geminicli.com/) | ✅ |
 | [Amp](https://ampcode.com/) | ✅ |
@@ -159,6 +158,8 @@ python skills/azure-openai-to-responses/scripts/detect_legacy.py /path/to/your-a
 ---
 
 ## Model compatibility
+
+> **❗ Important:** Check that your deployed model supports the Responses API before migrating — run `python migrate.py models --subscription YOUR_SUB_ID --location YOUR_REGION` or see the table below. Older models like `gpt-4o` support Responses but **not all features** (see [known limitations](#known-limitations-with-older-models)).
 
 ### Responses API support matrix (eastus2, March 2026)
 
