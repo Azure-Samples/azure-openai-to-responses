@@ -300,6 +300,14 @@ rg "ChatCompletionChunk|AsyncCompletions\.create" tests/
 rg "_azure_ad_token_provider" tests/
 rg "prompt_filter_results|content_filter_results" tests/
 rg "choices\[0\]" tests/
+
+# Content filter error body access (must update — structure changed)
+rg 'innererror.*content_filter_result|error\.body\["innererror"\]'
+rg "content_filter_result\[" # old singular form — now content_filter_results (plural) inside content_filters array
+
+# Raw HTTP calls to Chat Completions endpoint (must update URL)
+rg "/openai/deployments/.*/chat/completions"
+rg "api-version="
 ```
 
 ### Heuristics (detect and rewrite)
@@ -314,6 +322,8 @@ rg "choices\[0\]" tests/
 - **Formatting**: replace Chat's top-level `response_format` with `text.format` in Responses. Canonical shape: `text={"format": {"type": "json_schema", "name": "Output", "strict": True, "schema": {...}}}`.
 - **Content items**: replace Chat `content[].type: "text"` with Responses `content[].type: "input_text"` for user/system turns.
 - **Reasoning effort**: **only migrate `reasoning` if it already exists in the original code**.
+- **Content filter error handling**: the error body structure changed. Chat Completions used `error.body["innererror"]["content_filter_result"]` (singular); Responses API uses `error.body["content_filters"][0]["content_filter_results"]` (plural, inside an array). Code that accesses `innererror` will raise `KeyError`. Rewrite to use the new path.
+- **Raw HTTP calls**: if the app calls the Azure OpenAI REST API directly (via `requests`, `httpx`, etc.) using `/openai/deployments/{name}/chat/completions?api-version=...`, rewrite to `/openai/v1/responses`. The request body changes: `messages` → `input`, add `max_output_tokens` and `store: false`, remove `api-version` query param. The response body changes: `choices[0].message.content` → `output_text`.
 
 ---
 
