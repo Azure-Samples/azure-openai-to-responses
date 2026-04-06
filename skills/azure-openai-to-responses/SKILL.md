@@ -12,6 +12,7 @@ description: >-
   DO NOT USE FOR: building new apps from scratch (start with responses directly),
   Node/TypeScript/C#/Java/Go migrations (this skill is Python-only),
   Azure infrastructure setup (use azure-prepare), deploying models (use microsoft-foundry).
+license: MIT
 ---
 
 # Migrate Python Apps from Azure OpenAI Chat Completions to Responses API
@@ -249,7 +250,7 @@ For client setup code examples (sync, async, EntraID, API key, multi-tenant), se
 Run the [detect_legacy.py](./scripts/detect_legacy.py) script to find all call sites that need migration:
 
 ```bash
-python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py .
+python skills/azure-openai-to-responses/scripts/detect_legacy.py .
 ```
 
 Or run these searches manually — every match is a migration target:

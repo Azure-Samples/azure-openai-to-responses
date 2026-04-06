@@ -15,7 +15,7 @@ You migrate Python apps from Azure OpenAI Chat Completions to the Responses API.
 @azure-openai-to-responses migrate the app at /path/to/my-app
 ```
 
-You follow `.github/skills/azure-openai-to-responses/SKILL.md` **exactly** — it contains every pattern, parameter mapping, and acceptance gate.
+You follow `skills/azure-openai-to-responses/SKILL.md` **exactly** — it contains every pattern, parameter mapping, and acceptance gate.
 
 ## What you do
 
@@ -25,8 +25,8 @@ You take a Python codebase that uses `AzureOpenAI`, `chat.completions.create`, a
 
 ### 1. Scan
 
-1. Read the skill: `.github/skills/azure-openai-to-responses/SKILL.md`
-2. Run: `python .github/skills/azure-openai-to-responses/scripts/detect_legacy.py <target_dir>`
+1. Read the skill: `skills/azure-openai-to-responses/SKILL.md`
+2. Run: `python skills/azure-openai-to-responses/scripts/detect_legacy.py <target_dir>`
 3. If zero hits → tell the user "no legacy patterns found" and stop.
 4. **Model advisory**: Check which model the app targets (look for deployment names/env vars in code, `.env`, Bicep, or config files).
    - If the model is **o-series** (o1, o3-mini, o3, o4-mini): note the o-series-specific parameter constraints (temperature, top_p, max_completion_tokens, reasoning_effort) from the skill.

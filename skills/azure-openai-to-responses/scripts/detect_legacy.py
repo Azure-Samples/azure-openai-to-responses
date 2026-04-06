@@ -61,7 +61,8 @@ PATTERNS: list[tuple[str, str, str]] = [
 SKIP_DIRS = {
     ".git", ".venv", "venv", "__pycache__", "node_modules",
     ".tox", ".mypy_cache", ".pytest_cache", "dist", "build",
-    ".github",  # don't scan the skill itself
+    ".github",  # don't scan the agent definition
+    "skills",   # don't scan the skill itself
 }
 
 # Files that reference legacy patterns intentionally (docs, tooling)
