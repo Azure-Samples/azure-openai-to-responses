@@ -323,7 +323,7 @@ rg "api-version="
 - **Content items**: replace Chat `content[].type: "text"` with Responses `content[].type: "input_text"` for user/system turns.
 - **Reasoning effort**: **only migrate `reasoning` if it already exists in the original code**.
 - **Content filter error handling**: the error body structure changed. Chat Completions used `error.body["innererror"]["content_filter_result"]` (singular); Responses API uses `error.body["content_filters"][0]["content_filter_results"]` (plural, inside an array). Code that accesses `innererror` will raise `KeyError`. Rewrite to use the new path.
-- **Raw HTTP calls**: if the app calls the Azure OpenAI REST API directly (via `requests`, `httpx`, etc.) using `/openai/deployments/{name}/chat/completions?api-version=...`, rewrite to `/openai/v1/responses`. The request body changes: `messages` → `input`, add `max_output_tokens` and `store: false`, remove `api-version` query param. The response body changes: `choices[0].message.content` → `output_text`.
+- **Raw HTTP calls**: if the app calls the Azure OpenAI REST API directly (via `requests`, `httpx`, etc.) using `/openai/deployments/{name}/chat/completions?api-version=...`, rewrite to `/openai/v1/responses`. The request body changes: `messages` → `input`, add `max_output_tokens` and `store: false`, remove `api-version` query param. The response body changes: `choices[0].message.content` → `output[0].content[0].text` (note: `output_text` is an SDK convenience property not present in raw REST JSON).
 
 ---
 
