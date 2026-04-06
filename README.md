@@ -83,10 +83,12 @@ See the [Agent Skills spec](https://agentskills.io/specification) and [VS Code s
 
 ---
 
-<details>
-<summary><strong>Advanced: manual migration, bulk workflows, and standalone tooling</strong></summary>
+## Advanced manual migration
 
-For air-gapped environments, custom LLM pipelines, org-wide rollouts, or when you want full manual control.
+For air-gapped environments, custom LLM pipelines, org-wide bulk workflows, standalone tooling, or when you want full manual control.
+
+<details>
+<summary><strong>Expand for setup, single-repo, bulk, and scanner details</strong></summary>
 
 ### Setup
 
