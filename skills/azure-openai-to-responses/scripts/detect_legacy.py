@@ -49,7 +49,7 @@ PATTERNS: list[tuple[str, str, str]] = [
     # GitHub Models (not supported by Responses API — must remove)
     (r"models\.github\.ai|models\.inference\.ai\.azure", "GitHub Models endpoint (Responses API not supported — remove)", "github-models"),
     # Framework-level legacy patterns
-    (r"OpenAIChatClient", "MAF OpenAIChatClient (replace with OpenAIResponsesClient)", "framework"),
+    (r"OpenAIChatCompletionClient", "MAF OpenAIChatCompletionClient (uses Chat Completions; replace with OpenAIChatClient in 1.0.0+)", "framework"),
     # Test infrastructure
     (r"ChatCompletionChunk", "Legacy mock type in tests", "test"),
     (r"AsyncCompletions\.create", "Legacy mock patch path in tests", "test"),
