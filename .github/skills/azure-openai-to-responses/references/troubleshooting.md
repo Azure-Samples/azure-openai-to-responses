@@ -37,7 +37,7 @@
 | `429 Too Many Requests` mid-stream | Rate limited by Azure OpenAI | Stream breaks silently without error handling. Always wrap `async for event in await coroutine:` in `try/except` and yield `{"error": str(e)}` to the frontend. |
 | `AzureDeveloperCliCredential` → `CredentialUnavailableError` | Wrong tenant or not logged in | Pass `tenant_id=os.getenv("AZURE_TENANT_ID")` explicitly. Run `azd auth login --tenant <tenant-id>` locally. |
 | `404 Not Found` using GitHub Models (`models.github.ai`) | GitHub Models does not support Responses API | Remove the GitHub Models code path entirely. Use Azure OpenAI, OpenAI, or a compatible local endpoint (e.g., Ollama with Responses support). |
-| `AttributeError: 'OpenAIResponsesClient' has no attribute ...` (MAF) | Using old `OpenAIChatClient` import | Replace `from agent_framework.openai import OpenAIChatClient` with `from agent_framework.openai import OpenAIResponsesClient`. |
+| MAF `OpenAIChatCompletionClient` still using Chat Completions | Using legacy MAF client in 1.0.0+ | In MAF 1.0.0+, `OpenAIChatClient` uses Responses API by default. Replace `OpenAIChatCompletionClient` with `OpenAIChatClient`. For pre-1.0.0, upgrade to `agent-framework-openai>=1.0.0`. |
 | LangChain agent returns empty or fails with tool calls | `ChatOpenAI` not using Responses API | Add `use_responses_api=True` to `ChatOpenAI(...)`. Also change `.content` → `.text` on response messages. |
 
 ---

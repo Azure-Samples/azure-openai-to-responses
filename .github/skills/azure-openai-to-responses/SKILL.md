@@ -128,12 +128,22 @@ Many apps use higher-level frameworks on top of OpenAI. When migrating these, th
 
 ### Microsoft Agent Framework (MAF)
 
-`OpenAIChatClient` → `OpenAIResponsesClient`. The import path and class name change; constructor args (`base_url`, `api_key`, `model_id`) stay the same.
+**Check your MAF version first** — the migration depends on whether you are on MAF 1.0.0+ or a pre-1.0.0 beta/rc.
+
+#### MAF 1.0.0+ (agent-framework-openai >= 1.0.0)
+
+`OpenAIChatClient` **already uses the Responses API** — no migration needed. If the codebase uses the legacy `OpenAIChatCompletionClient` (which uses `chat.completions.create`), replace it with `OpenAIChatClient`.
 
 | Before | After |
 |--------|-------|
-| `from agent_framework.openai import OpenAIChatClient` | `from agent_framework.openai import OpenAIResponsesClient` |
-| `OpenAIChatClient(base_url=..., api_key=..., model_id=...)` | `OpenAIResponsesClient(base_url=..., api_key=..., model_id=...)` |
+| `from agent_framework.openai import OpenAIChatCompletionClient` | `from agent_framework.openai import OpenAIChatClient` |
+| `OpenAIChatCompletionClient(...)` | `OpenAIChatClient(...)` |
+
+To check your version: `python -c "import agent_framework_openai; print(agent_framework_openai.__version__)"`
+
+#### MAF pre-1.0.0 (beta/rc releases)
+
+In pre-1.0.0 MAF, `OpenAIChatClient` used Chat Completions. Upgrade to `agent-framework-openai>=1.0.0` where `OpenAIChatClient` uses the Responses API by default.
 
 No other changes needed — the `Agent` and tool APIs remain the same.
 
@@ -281,7 +291,7 @@ rg "AZURE_OPENAI_CLIENT_ID"  # should be AZURE_CLIENT_ID
 rg "models\.github\.ai|models\.inference\.ai\.azure"
 
 # Framework-level legacy patterns (must update)
-rg "OpenAIChatClient"         # MAF: replace with OpenAIResponsesClient
+rg "OpenAIChatCompletionClient"  # MAF 1.0.0+: replace with OpenAIChatClient
 rg "ChatOpenAI\(" | grep -v "use_responses_api"  # LangChain: needs use_responses_api=True
 
 # Test infrastructure (must update)
@@ -354,7 +364,7 @@ For troubleshooting errors and gotchas, see [troubleshooting.md](./references/tr
 - [ ] Zero matches for `rg "chat\.completions\.create|ChatCompletion\.create|Completion\.create"` in migrated files.
 - [ ] Zero matches for `rg "AzureOpenAI\(|AsyncAzureOpenAI\("` — all constructors use `OpenAI`/`AsyncOpenAI` with the v1 endpoint.
 - [ ] Zero matches for `rg "models\.github\.ai|models\.inference\.ai\.azure"` — GitHub Models code paths removed.
-- [ ] Zero matches for `rg "OpenAIChatClient"` — MAF code uses `OpenAIResponsesClient`.
+- [ ] Zero matches for `rg "OpenAIChatCompletionClient"` — MAF 1.0.0+ code uses `OpenAIChatClient` (which uses Responses API). In pre-1.0.0, upgrade to `agent-framework-openai>=1.0.0`.
 - [ ] All `ChatOpenAI(...)` calls include `use_responses_api=True`.
 - [ ] Zero matches for `rg "choices\[0\]"` — all response access uses `resp.output_text` or the Responses output schema.
 - [ ] No `response_format` at top level; all structured output uses `text={"format": {...}}`.

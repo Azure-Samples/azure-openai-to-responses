@@ -576,9 +576,32 @@ print(resp.output_text)
 
 ## Microsoft Agent Framework (MAF) migration
 
-The framework client class changes from `OpenAIChatClient` to `OpenAIResponsesClient`. Constructor args are unchanged.
+**Check your MAF version first** — the migration depends on whether you are on MAF 1.0.0+ or a pre-1.0.0 beta/rc.
+
+To check: `python -c "import agent_framework_openai; print(agent_framework_openai.__version__)"`
+
+### MAF 1.0.0+ (agent-framework-openai >= 1.0.0)
+
+In MAF 1.0.0+, `OpenAIChatClient` **already uses the Responses API** — no migration needed.
+
+If the codebase uses the legacy `OpenAIChatCompletionClient` (which uses `chat.completions.create`), replace it with `OpenAIChatClient`:
 
 Before:
+```python
+from agent_framework.openai import OpenAIChatCompletionClient
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
+
+async_credential = DefaultAzureCredential()
+token_provider = get_bearer_token_provider(async_credential, "https://cognitiveservices.azure.com/.default")
+
+client = OpenAIChatCompletionClient(
+    base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT']}/openai/v1/",
+    api_key=token_provider,
+    model=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"],
+)
+```
+
+After:
 ```python
 from agent_framework.openai import OpenAIChatClient
 from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
@@ -589,24 +612,13 @@ token_provider = get_bearer_token_provider(async_credential, "https://cognitives
 client = OpenAIChatClient(
     base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT']}/openai/v1/",
     api_key=token_provider,
-    model_id=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"],
+    model=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"],
 )
 ```
 
-After:
-```python
-from agent_framework.openai import OpenAIResponsesClient
-from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
+### MAF pre-1.0.0 (beta/rc releases)
 
-async_credential = DefaultAzureCredential()
-token_provider = get_bearer_token_provider(async_credential, "https://cognitiveservices.azure.com/.default")
-
-client = OpenAIResponsesClient(
-    base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT']}/openai/v1/",
-    api_key=token_provider,
-    model_id=os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"],
-)
-```
+In pre-1.0.0 MAF, `OpenAIChatClient` used Chat Completions. Upgrade to `agent-framework-openai>=1.0.0` where `OpenAIChatClient` uses the Responses API by default.
 
 > **Note**: The `Agent`, `MCPStreamableHTTPTool`, and other MAF APIs remain unchanged — only the client class import and instantiation change.
 
