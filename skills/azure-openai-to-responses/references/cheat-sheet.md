@@ -412,6 +412,38 @@ messages = [
 resp = client.responses.create(model=deployment, input=messages, store=False)
 ```
 
+### Multi-turn via `previous_response_id` (alternative)
+
+Instead of managing the conversation array yourself, you can chain responses
+server-side using `previous_response_id`. The API stores each response and
+automatically prepends prior turns.
+
+```python
+# First turn
+response = client.responses.create(
+    model=deployment,
+    input=[{"role": "user", "content": "Write a Python function to calculate factorial"}],
+)
+print(response.output_text)
+
+# Subsequent turns — just pass the new user message + previous response ID
+response2 = client.responses.create(
+    model=deployment,
+    input=[{"role": "user", "content": "Now optimize it with memoization"}],
+    previous_response_id=response.id,
+)
+print(response2.output_text)
+```
+
+**When to use which:**
+
+| Approach | Pros | Cons |
+|---|---|---|
+| `input` array (manual) | Full control over history; can trim/summarize; no server-side storage needed (`store=False`) | More code; you manage the array |
+| `previous_response_id` | Simpler code; automatic chaining | Requires `store=True` (default); conversation stored server-side; can't modify history between turns |
+
+> **Migration note:** Most Chat Completions apps already manage their own message array, so converting to `input` array is a more direct 1:1 migration. Use `previous_response_id` for new code or when you don't need to manipulate conversation history.
+
 ## O-series reasoning models (o1, o3-mini, o3, o4-mini)
 
 O-series models have unique parameter constraints when migrating to Responses API.
