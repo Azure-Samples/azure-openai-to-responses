@@ -245,6 +245,55 @@ python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --json  #
 - [OpenAI Responses API reference](https://platform.openai.com/docs/api-reference/responses)
 
 <details>
+<summary>MCP server (for agents)</summary>
+
+The MCP server exposes the scanner, smoke test, model checker, and migration plan as structured tools that agents can call natively instead of shelling out to scripts.
+
+```bash
+# Install with MCP support
+pip install -e ".[mcp]"
+
+# Run the MCP server (stdio transport)
+python mcp_server.py
+
+# Or via the installed entry point
+azure-openai-to-responses-mcp
+```
+
+**VS Code / Copilot** — add to `.vscode/mcp.json`:
+```json
+{
+  "servers": {
+    "azure-openai-to-responses": {
+      "command": "python",
+      "args": ["mcp_server.py"]
+    }
+  }
+}
+```
+
+**Claude Code** — add to `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "azure-openai-to-responses": {
+      "command": "python",
+      "args": ["mcp_server.py"]
+    }
+  }
+}
+```
+
+| Tool | Description |
+|---|---|
+| `scan` | Scan directories for legacy Chat Completions patterns. Returns structured JSON with hits grouped by category. |
+| `smoke_test` | Test whether the configured Azure OpenAI deployment supports the Responses API. |
+| `check_models` | Query Azure ARM for model capabilities in a region. Returns Responses API support matrix. |
+| `migration_plan` | Get the recommended migration workflow and key API mappings. |
+
+</details>
+
+<details>
 <summary>CLI reference</summary>
 
 | Command | Description |
@@ -267,6 +316,7 @@ python migrate.py models --subscription YOUR_SUB_ID --location eastus2 --json  #
 ```
 azure-openai-to-responses/
 ├── migrate.py                              # CLI entry point
+├── mcp_server.py                           # MCP server (structured tools for agents)
 ├── pyproject.toml                          # Package metadata & dependencies
 ├── README.md
 ├── .github/
