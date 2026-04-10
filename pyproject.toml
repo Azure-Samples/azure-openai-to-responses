@@ -12,6 +12,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+mcp = [
+    "mcp>=1.0.0",
+]
 test = [
     "pytest",
     "pytest-asyncio",
@@ -20,7 +23,9 @@ dev = [
     "pytest",
     "pytest-asyncio",
     "ruff",
+    "mcp>=1.0.0",
 ]
 
 [project.scripts]
 azure-openai-to-responses = "migrate:main"
+azure-openai-to-responses-mcp = "mcp_server:run"
