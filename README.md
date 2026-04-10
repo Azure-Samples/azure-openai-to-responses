@@ -21,9 +21,71 @@ This skill follows the open [Agent Skills](https://agentskills.io/) format — i
 
 ### 1. Install the skill
 
+**Universal (Agent Skills CLI):**
 ```bash
 npx skills add Azure-Samples/azure-openai-to-responses
 ```
+
+**Or install directly for your agent:**
+
+<details>
+<summary>VS Code / GitHub Copilot</summary>
+
+Clone this repo and open it alongside your app as a [multi-root workspace](https://code.visualstudio.com/docs/editor/multi-root-workspaces):
+
+```bash
+git clone https://github.com/Azure-Samples/azure-openai-to-responses.git
+# File → Add Folder to Workspace… → select azure-openai-to-responses
+```
+
+The `@azure-openai-to-responses` agent and skill activate automatically.
+
+</details>
+
+<details>
+<summary>Claude Code</summary>
+
+```bash
+git clone https://github.com/Azure-Samples/azure-openai-to-responses.git
+cp -r azure-openai-to-responses/skills/azure-openai-to-responses .claude/skills/
+```
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+```bash
+git clone https://github.com/Azure-Samples/azure-openai-to-responses.git
+cp -r azure-openai-to-responses/skills/azure-openai-to-responses .cursor/skills/
+```
+
+</details>
+
+<details>
+<summary>Codex CLI / any LLM</summary>
+
+Reference the skill as context — clone the repo and point the agent at `SKILL.md`:
+
+```bash
+git clone https://github.com/Azure-Samples/azure-openai-to-responses.git
+# Then feed skills/azure-openai-to-responses/SKILL.md as context to your agent
+```
+
+</details>
+
+<details>
+<summary>Manual / air-gapped</summary>
+
+```bash
+git clone https://github.com/Azure-Samples/azure-openai-to-responses.git
+cd azure-openai-to-responses
+pip install -e ".[dev]"
+```
+
+Then follow [SKILL.md](skills/azure-openai-to-responses/SKILL.md) step by step using the [cheat sheet](skills/azure-openai-to-responses/references/cheat-sheet.md).
+
+</details>
 
 ### 2. Ask your agent to migrate
 
